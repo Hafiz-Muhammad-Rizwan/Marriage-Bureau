@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "157785319634",
+    "project_id": "marriage-app-71ea3",
+    "storage_bucket": "marriage-app-71ea3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:157785319634:android:2d0e478133ca998c68e50b",
+        "android_client_info": {
+          "package_name": "com.example.marriage_bereau_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoZBY2qg6jku4moqK_vEZDUQkCDL9CLo0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

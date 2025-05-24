@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-
+import 'package:marriage_bereau_app/RegistrationScreen/personalDetails.dart';
 import '../Essentials/colors.dart';
 import '../Essentials/fontSizes.dart';
 
-class Signupscreen extends StatefulWidget {
-  const Signupscreen({super.key});
+class Loginscreen extends StatefulWidget {
+  const Loginscreen({super.key});
 
   @override
-  State<Signupscreen> createState() => _SignupscreenState();
+  State<Loginscreen> createState() => _LoginscreenState();
 }
 
-class _SignupscreenState extends State<Signupscreen> {
+class _LoginscreenState extends State<Loginscreen> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -44,29 +44,41 @@ class _SignupscreenState extends State<Signupscreen> {
                   topRight: Radius.circular(50),
                 ),
               ),
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 20),
-                     Text(
-                      "Create an account",
+                    Text(
+                      "Welcome Back",
                       style: TextStyle(
                         color: blackColor,
                         fontSize: headingSize,
                         fontWeight: FontWeight.bold,
                       ),
+                      textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "Login to your account",
+                      style: TextStyle(
+                        color: blackColor.withOpacity(0.6),
+                        fontSize: subHeadingSize,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 30),
                     Form(
                       key: _formKey,
                       child: Column(
                         children: [
-                          const SizedBox(height: 20),
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             decoration: const InputDecoration(
                               labelText: "Email address",
+                              border: OutlineInputBorder(),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -76,6 +88,7 @@ class _SignupscreenState extends State<Signupscreen> {
                             keyboardType: TextInputType.visiblePassword,
                             decoration: const InputDecoration(
                               labelText: "Password",
+                              border: OutlineInputBorder(),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -101,17 +114,17 @@ class _SignupscreenState extends State<Signupscreen> {
                                           style: TextStyle(
                                               color: blackColor,
                                               fontSize: subHeadingSize)),
-                                       TextSpan(
+                                      TextSpan(
                                           text: "terms ",
                                           style: TextStyle(
                                               color: pinkColor,
                                               fontSize: subHeadingSize)),
-                                       TextSpan(
+                                      TextSpan(
                                           text: "& ",
                                           style: TextStyle(
                                               color: blackColor,
                                               fontSize: subHeadingSize)),
-                                       TextSpan(
+                                      TextSpan(
                                           text: "conditions",
                                           style: TextStyle(
                                               color: pinkColor,
@@ -121,14 +134,63 @@ class _SignupscreenState extends State<Signupscreen> {
                                 ),
                               ),
                             ],
-                          )
+                          ),
+                          const SizedBox(height: 30),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: pinkColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  if (!_termsAccepted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text("Please accept terms")),
+                                    );
+                                    return;
+                                  }
+                                  // Handle login logic here
+                                }
+                              },
+                              child: Text(
+                                "Login",
+                                style: TextStyle(
+                                    color: whiteColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    Spacer(),
-                    Align(
-                      alignment: Alignment.bottomLeft,
-                        child: Text("Already have an account?",style: TextStyle(color: blackColor),))
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Don't have an account?",
+                            style: TextStyle(color: blackColor)),
+                        const SizedBox(width: 5),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>PersonalDetailsScreen()));
+                          },
+                          child: Text(
+                            "Register",
+                            style: TextStyle(
+                              color: pinkColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ),

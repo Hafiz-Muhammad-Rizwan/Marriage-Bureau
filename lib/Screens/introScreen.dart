@@ -55,7 +55,7 @@ class Introscreen extends StatelessWidget {
                         backgroundColor: pinkColor
                       ),
                         onPressed: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=>Signupscreen()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=>Loginscreen()));
                         },
                         child: Text("Get Started",style: TextStyle(color: whiteColor,fontWeight: FontWeight.bold,fontSize: subHeadingSize),))
                   ],

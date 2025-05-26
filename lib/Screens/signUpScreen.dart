@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/personalDetails.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/stepManager.dart';
 import '../Essentials/colors.dart';
 import '../Essentials/fontSizes.dart';
 
@@ -178,7 +179,7 @@ class _LoginscreenState extends State<Loginscreen> {
                         const SizedBox(width: 5),
                         GestureDetector(
                           onTap: () {
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>PersonalDetailsScreen()));
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Stepmanager()));
                           },
                           child: Text(
                             "Register",

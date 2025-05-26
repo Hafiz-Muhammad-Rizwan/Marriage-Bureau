@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   firebase_core: ^3.13.0
   firebase_auth: ^5.5.3
+  easy_stepper: ^0.8.5+1
   cloud_firestore: ^5.6.7
   provider: ^6.1.5
 

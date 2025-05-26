@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../Essentials/colors.dart';
+import '../Essentials/fontSizes.dart';
+import '../Essentials/customTextField.dart';
 
 class ReligionDetailsScreen extends StatelessWidget {
   const ReligionDetailsScreen({super.key});
@@ -7,85 +10,86 @@ class ReligionDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+    final _casteControler=TextEditingController();
+    final _practicesControler=TextEditingController();
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text("Religion Details"),
-        backgroundColor: Colors.pinkAccent,
-        centerTitle: true,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle("Religion"),
+          _buildDropDown(),
+
+          SizedBox(height: height * 0.03),
+          _buildSectionTitle("Caste (if applicable)"),
+          CustomTextField(
+            hint: "Enter Caste", label: 'Caste',
+            controller: _casteControler,
+          ),
+
+          SizedBox(height: height * 0.03),
+          _buildSectionTitle("Religious Practices"),
+          CustomTextField(
+            controller: _practicesControler,
+            hint: "Describe religious practices (optional)",
+            maxLines: 4, label: 'Practices',
+          ),
+
+          SizedBox(height: height * 0.05),
+          SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: pinkColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 3,
+              ),
+              onPressed: () {
+                // Submit action
+              },
+              child: Text(
+                "Submit",
+                style: TextStyle(fontSize: subHeadingSize, color: whiteColor, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            const Text(
-              "Religion",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Select Religion',
-              ),
-              items: ["Islam", "Christianity", "Hinduism", "Buddhism", "Other"]
-                  .map((religion) => DropdownMenuItem(
-                value: religion,
-                child: Text(religion),
-              ))
-                  .toList(),
-              onChanged: (value) {},
-            ),
+    );
+  }
 
-            const SizedBox(height: 20),
-            const Text(
-              "Caste (if applicable)",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter Caste',
-              ),
-            ),
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(fontSize: subHeadingSize, fontWeight: FontWeight.w600),
+    );
+  }
 
-            const SizedBox(height: 20),
-            const Text(
-              "Religious Practices",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              maxLines: 3,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Describe religious practices (optional)',
-              ),
-            ),
-
-            const SizedBox(height: 30),
-            SizedBox(
-              width: width,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                onPressed: () {
-                  // Submit or navigate further
-                },
-                child: const Text(
-                  "Submit",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
+  Widget _buildDropDown() {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 6, offset: Offset(0, 3)),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          hintText: 'Select Religion',
         ),
+        items: ["Islam", "Christianity", "Hinduism", "Buddhism", "Other"]
+            .map((religion) => DropdownMenuItem(
+          value: religion,
+          child: Text(religion),
+        ))
+            .toList(),
+        onChanged: (value) {},
       ),
     );
   }

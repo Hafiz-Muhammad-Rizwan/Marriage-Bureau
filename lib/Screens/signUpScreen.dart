@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:marriage_bereau_app/RegistrationScreen/personalDetails.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/genderScreen.dart';
 import '../Essentials/colors.dart';
 import '../Essentials/fontSizes.dart';
+import '../Essentials/customTextField.dart';
 
 class Loginscreen extends StatefulWidget {
   const Loginscreen({super.key});
@@ -15,6 +16,38 @@ class _LoginscreenState extends State<Loginscreen> {
   final _passController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _termsAccepted = false;
+  bool _isPasswordVisible = false;
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passController.dispose();
+    super.dispose();
+  }
+
+  void _showTermsAndConditions() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Terms & Conditions", style: TextStyle(color: pinkColor)),
+          content: SingleChildScrollView(
+            child: Text(
+              "By logging in, you agree to our privacy policy and terms of service. This includes data usage for personalized content, communication via email/SMS, and adherence to community guidelines. Please read full terms on our website.",
+              style: TextStyle(fontSize: subHeadingSize),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("Close", style: TextStyle(color: pinkColor)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,59 +69,125 @@ class _LoginscreenState extends State<Loginscreen> {
             const Spacer(),
             Container(
               width: width,
-              height: height * 0.70,
-              decoration: const BoxDecoration(
+              height: height * (height > 700 ? 0.65 : 0.75),
+              decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(50),
-                  topRight: Radius.circular(50),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 15,
+                    spreadRadius: 5,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
               ),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 25.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 20),
                     Text(
                       "Welcome Back",
                       style: TextStyle(
                         color: blackColor,
-                        fontSize: headingSize,
+                        fontSize: headingSize * 1.2,
                         fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
                       ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      "Login to your account",
+                      "Login to your account to continue",
                       style: TextStyle(
                         color: blackColor.withOpacity(0.6),
                         fontSize: subHeadingSize,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 35),
                     Form(
                       key: _formKey,
                       child: Column(
                         children: [
-                          TextFormField(
+                          CustomTextField(
+                            label: "Email address",
+                            hint: "example@email.com",
                             controller: _emailController,
+                            prefixIcon: Icons.email,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: "Email address",
-                              border: OutlineInputBorder(),
-                            ),
+                            textInputAction: TextInputAction.next,
+                            focusedBorderColor: pinkColor,
+                            fillColor: Colors.grey[100]!,
+                            borderRadius: 12,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                                return 'Please enter a valid email address';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 20),
-                          TextFormField(
+                          CustomTextField(
+                            label: "Password",
+                            hint: "Enter your password",
                             controller: _passController,
-                            obscureText: true,
+                            prefixIcon: Icons.lock,
+                            obscureText: !_isPasswordVisible,
                             keyboardType: TextInputType.visiblePassword,
-                            decoration: const InputDecoration(
-                              labelText: "Password",
-                              border: OutlineInputBorder(),
+                            textInputAction: TextInputAction.done,
+                            focusedBorderColor: pinkColor,
+                            fillColor: Colors.grey[100]!,
+                            borderRadius: 12,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters long';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Forgot Password tapped!", style: TextStyle(color: whiteColor)),
+                                    backgroundColor: pinkColor,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Forgot Password?",
+                                style: TextStyle(
+                                  color: pinkColor,
+                                  fontSize: subHeadingSize * 0.9,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -104,8 +203,12 @@ class _LoginscreenState extends State<Loginscreen> {
                                     _termsAccepted = value!;
                                   });
                                 },
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                side: BorderSide(color: Colors.grey.shade400, width: 1.5),
                               ),
-                              Flexible(
+                              Expanded(
                                 child: RichText(
                                   text: TextSpan(
                                     children: [
@@ -113,22 +216,40 @@ class _LoginscreenState extends State<Loginscreen> {
                                           text: "I agree with the ",
                                           style: TextStyle(
                                               color: blackColor,
-                                              fontSize: subHeadingSize)),
-                                      TextSpan(
-                                          text: "terms ",
-                                          style: TextStyle(
+                                              fontSize: subHeadingSize * 0.95)),
+                                      WidgetSpan(
+                                        child: GestureDetector(
+                                          onTap: _showTermsAndConditions,
+                                          child: Text(
+                                            "terms",
+                                            style: TextStyle(
                                               color: pinkColor,
-                                              fontSize: subHeadingSize)),
+                                              fontSize: subHeadingSize * 0.95,
+                                              fontWeight: FontWeight.bold,
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                       TextSpan(
-                                          text: "& ",
+                                          text: " & ",
                                           style: TextStyle(
                                               color: blackColor,
-                                              fontSize: subHeadingSize)),
-                                      TextSpan(
-                                          text: "conditions",
-                                          style: TextStyle(
+                                              fontSize: subHeadingSize * 0.95)),
+                                      WidgetSpan(
+                                        child: GestureDetector(
+                                          onTap: _showTermsAndConditions,
+                                          child: Text(
+                                            "conditions",
+                                            style: TextStyle(
                                               color: pinkColor,
-                                              fontSize: subHeadingSize)),
+                                              fontSize: subHeadingSize * 0.95,
+                                              fontWeight: FontWeight.bold,
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -138,38 +259,52 @@ class _LoginscreenState extends State<Loginscreen> {
                           const SizedBox(height: 30),
                           SizedBox(
                             width: double.infinity,
-                            height: 50,
+                            height: 55,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: pinkColor,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(15),
                                 ),
+                                elevation: 8,
+                                shadowColor: pinkColor.withOpacity(0.5),
                               ),
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
                                   if (!_termsAccepted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text("Please accept terms")),
+                                      SnackBar(
+                                        content: Text("Please accept the terms & conditions.", style: TextStyle(color: whiteColor)),
+                                        backgroundColor: Colors.redAccent,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
                                     );
                                     return;
                                   }
-                                  // Handle login logic here
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Login successful!", style: TextStyle(color: whiteColor)),
+                                      backgroundColor: pinkColor,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
                                 }
                               },
                               child: Text(
                                 "Login",
                                 style: TextStyle(
-                                    color: whiteColor,
-                                    fontWeight: FontWeight.bold),
+                                  color: whiteColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: headingSize * 0.9,
+                                  letterSpacing: 1.0,
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 25),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -178,13 +313,15 @@ class _LoginscreenState extends State<Loginscreen> {
                         const SizedBox(width: 5),
                         GestureDetector(
                           onTap: () {
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>PersonalDetailsScreen()));
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const GenderScreen()));
                           },
                           child: Text(
-                            "Register",
+                            "Register Now",
                             style: TextStyle(
                               color: pinkColor,
                               fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                              fontSize: subHeadingSize,
                             ),
                           ),
                         ),

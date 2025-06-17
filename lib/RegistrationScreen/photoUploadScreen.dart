@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:marriage_bereau_app/Essentials/colors.dart';
 import 'package:marriage_bereau_app/Essentials/fontSizes.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/CountrySelection.dart';
 
 class PhotoUploadScreen extends StatefulWidget {
   const PhotoUploadScreen({super.key});
@@ -72,7 +73,24 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
         behavior: SnackBarBehavior.floating,
       ),
     );
-
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => countrySelection(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0); // Start from the right
+          const end = Offset.zero; // End at the center
+          const curve = Curves.easeInOut;
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+        transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
+      ),
+    );
   }
 
   @override
@@ -188,6 +206,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: pinkColor,
                     padding: const EdgeInsets.symmetric(vertical: 18),
+                    minimumSize: const Size(270, 0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),

@@ -1,6 +1,14 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/ChildrenScreen.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/CountrySelection.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/HalalFood.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/HeightScreen.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/IntetrestScreen.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/MaritalStatus.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/PrayScreen.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/RelegiousPractice.dart';
 import 'package:provider/provider.dart';
 
 import 'Screens/introScreen.dart';
@@ -16,6 +24,18 @@ Future<void> main() async {
   runApp(
       MultiProvider(providers:[
         ChangeNotifierProvider(create: (_)=>SignUp()),
+        ChangeNotifierProvider(create: (_)=>countryData()..fetchCountries()),
+        ChangeNotifierProvider(create: (_)=>HeightProvider()),
+        ChangeNotifierProvider(create: (_)=>MaritalStatusProvider()),
+        ChangeNotifierProvider(create: (_)=>ReligiousPracticeProvider()),
+        ChangeNotifierProvider(create: (_)=>PrayerFrequencyProvider()),
+        ChangeNotifierProvider(create: (_)=>HalalFoodProvider()),
+        ChangeNotifierProvider(create: (_)=>SmokingProvider()),
+        ChangeNotifierProvider(create: (_)=>AlcoholConsumptionProvider()),
+        ChangeNotifierProvider(create: (_)=>ChildrenProvider()),
+        ChangeNotifierProvider(create: (_)=>MoveAbroadProvider()),
+        ChangeNotifierProvider(create: (_)=>BornMuslimProvider()),
+        ChangeNotifierProvider(create: (_)=>InterestProvider())
       ],
         child: const MyApp(),
       )
@@ -33,8 +53,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: Introscreen(),
+      home: Intetrestscreen() ,
     );
   }
 }
-

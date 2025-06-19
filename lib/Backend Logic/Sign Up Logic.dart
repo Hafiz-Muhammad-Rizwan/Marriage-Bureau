@@ -437,4 +437,48 @@ class InterestProvider extends ChangeNotifier {
 
   bool isSelected(Interest interest) => _selectedInterests.contains(interest);
 }
+// Progress Screeen
+class ProgressProvider extends ChangeNotifier {
+  int _currentScreen = 0;
+  final int _totalScreens = 19;
+
+  int get currentScreen => _currentScreen;
+  int get totalScreens => _totalScreens;
+  double get progress => _currentScreen / (_totalScreens - 1);
+
+  void nextScreen() {
+    if (_currentScreen < _totalScreens - 1) {
+      _currentScreen++;
+      notifyListeners();
+    }
+  }
+
+  void previousScreen() {
+    if (_currentScreen > 0) {
+      _currentScreen--;
+      notifyListeners();
+    }
+  }
+}
+// Bio Screen
+class BioProvider extends ChangeNotifier {
+  final TextEditingController _bioController = TextEditingController();
+  String _bio = '';
+
+  TextEditingController get bioController => _bioController;
+  String get bio  {
+    return _bio;
+  }
+
+  void updateBio(String value) {
+    _bio = value;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _bioController.dispose();
+    super.dispose();
+  }
+}
 

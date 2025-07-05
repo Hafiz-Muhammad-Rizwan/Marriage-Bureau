@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:marriage_bereau_app/Screens/homeScreen.dart';
 import 'package:marriage_bereau_app/Screens/signUpScreen.dart';
 import '../Essentials/colors.dart';
 import '../Essentials/fontSizes.dart';
@@ -110,10 +111,11 @@ class Introscreen extends StatelessWidget {
                                   shadowColor: pinkColor.withOpacity(0.5),
                                 ),
                                 onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => Loginscreen()),
-                                  );
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(builder: (context) => Loginscreen()),
+                                  // );
+                                    Navigator.push(context, MaterialPageRoute(builder: (context)=>HomeScreen()));
                                 },
                                 child: Text(
                                   "Get Started",

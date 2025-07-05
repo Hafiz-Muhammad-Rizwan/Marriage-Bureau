@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
 import 'package:marriage_bereau_app/Essentials/fontSizes.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/religionQuote.dart';
+import 'package:marriage_bereau_app/Screens/homeScreen.dart';
 import 'package:provider/provider.dart';
 class Bioscreen extends StatefulWidget {
   const Bioscreen({super.key});
@@ -49,7 +50,7 @@ class _BioscreenState extends State<Bioscreen> {
       progressProvider.nextScreen();
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => MotivationalQuoteScreen()),
+        MaterialPageRoute(builder: (context) => HomeScreen()),
       );
     }
   }

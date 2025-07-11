@@ -4,6 +4,7 @@ import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/BioScreen.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/ChildrenScreen.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/CountrySelection.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/Editing%20Screen.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/HalalFood.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/HeightScreen.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/IntetrestScreen.dart';
@@ -11,6 +12,8 @@ import 'package:marriage_bereau_app/RegistrationScreen/MaritalStatus.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/PrayScreen.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/RelegiousPractice.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/name_ageScreen.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/photoUploadScreen.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/stepManager.dart';
 import 'package:provider/provider.dart';
 
 import 'Screens/introScreen.dart';
@@ -57,7 +60,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: Introscreen(),
+      home: EditingScreen(),
     );
   }
 }

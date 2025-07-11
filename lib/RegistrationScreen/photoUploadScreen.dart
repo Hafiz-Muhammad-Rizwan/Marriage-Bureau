@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:marriage_bereau_app/Essentials/colors.dart';
 import 'package:marriage_bereau_app/Essentials/fontSizes.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/CountrySelection.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/HeightScreen.dart';
 import 'package:provider/provider.dart';
 
 class PhotoUploadScreen extends StatefulWidget {
@@ -80,7 +81,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => countrySelection(),
+        pageBuilder: (context, animation, secondaryAnimation) => HeightScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(1.0, 0.0); // Start from the right
           const end = Offset.zero; // End at the center

@@ -13,7 +13,6 @@ class EducationScreen extends StatefulWidget {
 }
 
 class _EducationScreenState extends State<EducationScreen> {
-  String? _selectedEducation;
 
   final List<String> _educationLevels = [
     "High School",
@@ -26,7 +25,9 @@ class _EducationScreenState extends State<EducationScreen> {
   ];
 
   void _submitEducationSelection() {
-    if (_selectedEducation == null) {
+    final educationProvider = Provider.of<EducationLevelProvider>(context, listen: false);
+
+    if (educationProvider.selectedLevel == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select your education level to proceed!', style: TextStyle(color: Colors.white)),
@@ -36,15 +37,11 @@ class _EducationScreenState extends State<EducationScreen> {
       );
       return;
     }
-    print("Selected Education: $_selectedEducation");
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('You have selected: $_selectedEducation!', style: const TextStyle(color: Colors.white)),
-        backgroundColor: pinkColor,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+
+
+
+
     final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
     progressProvider.nextScreen();
     Navigator.push(context, MaterialPageRoute(builder: (context)=>PhotoUploadScreen()));
@@ -192,12 +189,14 @@ class _EducationScreenState extends State<EducationScreen> {
   }
 
   Widget _buildEducationOption(String education) {
-    bool isSelected = _selectedEducation == education;
+    final educationProvider = Provider.of<EducationLevelProvider>(context, listen: false);
+    bool isSelected = educationProvider.selectedLevel?.level == education;
+
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedEducation = education;
-        });
+        // Use the provider instead of local state
+        educationProvider.selectLevel(EducationLevel(education));
+        setState(() {}); // Trigger a rebuild
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),

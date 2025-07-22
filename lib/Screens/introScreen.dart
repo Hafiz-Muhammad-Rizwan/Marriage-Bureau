@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/genderScreen.dart';
 import 'package:marriage_bereau_app/Screens/homeScreen.dart';
-import 'package:marriage_bereau_app/Screens/signUpScreen.dart';
+import 'package:marriage_bereau_app/Screens/signInScreen.dart';
 import '../Essentials/colors.dart';
 import '../Essentials/fontSizes.dart';
 
@@ -116,7 +116,7 @@ class Introscreen extends StatelessWidget {
                                   //   context,
                                   //   MaterialPageRoute(builder: (context) => Loginscreen()),
                                   // );
-                                    Navigator.push(context, MaterialPageRoute(builder: (context)=>GenderScreen()));
+                                    Navigator.push(context, MaterialPageRoute(builder: (context)=>Loginscreen()));
                                 },
                                 child: Text(
                                   "Get Started",

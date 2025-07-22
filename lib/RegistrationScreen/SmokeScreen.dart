@@ -94,7 +94,7 @@ class _SmokescreenState extends State<Smokescreen> {
                         ),
                         tileColor: isSelected ? Colors.grey[200] : null,
                         trailing: isSelected ? Icon(Icons.check_circle, color: Colors.red) : null,
-                        onTap: ()async {
+                        onTap: () async {
                           provider.selectOption(option);
                           final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
                           progressProvider.nextScreen();
@@ -104,8 +104,8 @@ class _SmokescreenState extends State<Smokescreen> {
                             PageRouteBuilder(
                               pageBuilder: (context, animation, secondaryAnimation) => Alcholscreen(),
                               transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                const begin = Offset(1.0, 0.0); // Start from the right
-                                const end = Offset.zero; // End at the center
+                                const begin = Offset(1.0, 0.0);
+                                const end = Offset.zero;
                                 const curve = Curves.easeInOut;
                                 var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
                                 var offsetAnimation = animation.drive(tween);
@@ -114,7 +114,7 @@ class _SmokescreenState extends State<Smokescreen> {
                                   child: child,
                                 );
                               },
-                              transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
+                              transitionDuration: Duration(milliseconds: 500),
                             ),
                           );
                         },

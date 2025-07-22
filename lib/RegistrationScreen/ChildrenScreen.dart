@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/ChildrenDetailsScreen.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/MoveAbroad.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/SiblingsScreen.dart';
 import 'package:provider/provider.dart';
 class Childrenscreen extends StatefulWidget {
   const Childrenscreen({super.key});
@@ -94,29 +96,54 @@ class _ChildrenscreenState extends State<Childrenscreen> {
                         ),
                         tileColor: isSelected ? Colors.grey[200] : null,
                         trailing: isSelected ? Icon(Icons.check_circle, color: Colors.red) : null,
-                        onTap: ()async {
+                        onTap: () async {
                           provider.selectOption(option);
                           final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
                           progressProvider.nextScreen();
                           await Future.delayed(Duration(milliseconds: 500));
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => Moveabroad(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                const begin = Offset(1.0, 0.0); // Start from the right
-                                const end = Offset.zero; // End at the center
-                                const curve = Curves.easeInOut;
-                                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                var offsetAnimation = animation.drive(tween);
-                                return SlideTransition(
-                                  position: offsetAnimation,
-                                  child: child,
-                                );
-                              },
-                              transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
-                            ),
-                          );
+
+                          // Navigate to the appropriate screen based on the selection
+                          if (option.option == "Yes") {
+                            // If user has children, go to children details screen
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => ChildrenDetailsScreen(),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  const begin = Offset(1.0, 0.0);
+                                  const end = Offset.zero;
+                                  const curve = Curves.easeInOut;
+                                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                  var offsetAnimation = animation.drive(tween);
+                                  return SlideTransition(
+                                    position: offsetAnimation,
+                                    child: child,
+                                  );
+                                },
+                                transitionDuration: Duration(milliseconds: 500),
+                              ),
+                            );
+                          } else {
+                            // If user doesn't have children, skip to move abroad screen
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => SiblingsScreen(),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  const begin = Offset(1.0, 0.0);
+                                  const end = Offset.zero;
+                                  const curve = Curves.easeInOut;
+                                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                  var offsetAnimation = animation.drive(tween);
+                                  return SlideTransition(
+                                    position: offsetAnimation,
+                                    child: child,
+                                  );
+                                },
+                                transitionDuration: Duration(milliseconds: 500),
+                              ),
+                            );
+                          }
                         },
                       );
                     },

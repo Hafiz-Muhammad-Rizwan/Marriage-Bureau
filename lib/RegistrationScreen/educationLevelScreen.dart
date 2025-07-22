@@ -13,8 +13,6 @@ class EducationScreen extends StatefulWidget {
 }
 
 class _EducationScreenState extends State<EducationScreen> {
-  String? _selectedEducation;
-
   final List<String> _educationLevels = [
     "High School",
     "Diploma",
@@ -25,8 +23,19 @@ class _EducationScreenState extends State<EducationScreen> {
     "Other",
   ];
 
+  final TextEditingController _customEducationController = TextEditingController();
+  String? _selectedEducation;
+
+  @override
+  void dispose() {
+    _customEducationController.dispose();
+    super.dispose();
+  }
+
   void _submitEducationSelection() {
-    if (_selectedEducation == null) {
+    final educationProvider = Provider.of<EducationLevelProvider>(context, listen: false);
+
+    if (educationProvider.selectedLevel == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select your education level to proceed!', style: TextStyle(color: Colors.white)),
@@ -36,165 +45,40 @@ class _EducationScreenState extends State<EducationScreen> {
       );
       return;
     }
-    print("Selected Education: $_selectedEducation");
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('You have selected: $_selectedEducation!', style: const TextStyle(color: Colors.white)),
-        backgroundColor: pinkColor,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
-    progressProvider.nextScreen();
-    Navigator.push(context, MaterialPageRoute(builder: (context)=>PhotoUploadScreen()));
-
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final double horizontalPadding = width > 600 ? width * 0.15 : 25;
-
-    return Consumer<ProgressProvider>(builder: (context,progressProvider,child)
-    {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "Marriage Beuru",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.8,
-            ),
-          ),
-          backgroundColor: Colors.pink,
-          elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            color: Colors.white,
-            onPressed: () {
-              progressProvider.previousScreen();
-              Navigator.pop(context);
-            },
-          ),
-          actions: [
-            Consumer<ProgressProvider>(
-              builder: (context, progressProvider, child) {
-                final percentage = (progressProvider.progress * 100).toStringAsFixed(0);
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          value: progressProvider.progress,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          backgroundColor: Colors.grey[300],
-                          strokeWidth: 2.0,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        '$percentage%',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.white, Colors.grey[100]!],
-            ),
-          ),
-          child: Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 30),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    "What's your educational background?",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: headingSize * 1.1,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Choose your highest level of education.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: subHeadingSize,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  Column(
-                    children: _educationLevels.map((education) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 15),
-                        child: _buildEducationOption(education),
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 50),
-
-                  ElevatedButton(
-                    onPressed: _submitEducationSelection,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: pinkColor,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      elevation: 8,
-                      shadowColor: pinkColor.withOpacity(0.5),
-                    ),
-                    child: const Text(
-                      "Continue",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+    if (educationProvider.selectedLevel?.level == "Other" &&
+        _customEducationController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your education level!', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
         ),
       );
+      return;
     }
-    );
+
+    if (educationProvider.selectedLevel?.level == "Other") {
+      educationProvider.setCustomEducation(_customEducationController.text.trim());
+    }
+    print(educationProvider.selectedLevel?.level);
+    final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+    progressProvider.nextScreen();
+    Navigator.push(context, MaterialPageRoute(builder: (context) => PhotoUploadScreen()));
   }
 
   Widget _buildEducationOption(String education) {
-    bool isSelected = _selectedEducation == education;
+    final educationProvider = Provider.of<EducationLevelProvider>(context, listen: false);
+    bool isSelected = educationProvider.selectedLevel?.level == education;
+
     return GestureDetector(
       onTap: () {
+        educationProvider.selectLevel(EducationLevel(education));
+
+        if (education != "Other") {
+          _customEducationController.clear();
+        }
+
         setState(() {
           _selectedEducation = education;
         });
@@ -250,5 +134,153 @@ class _EducationScreenState extends State<EducationScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final double horizontalPadding = width > 600 ? width * 0.15 : 25;
+
+    return Consumer<ProgressProvider>(builder: (context, progressProvider, child) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "Marriage Beuru",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.8,
+            ),
+          ),
+          backgroundColor: Colors.pink,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              progressProvider.previousScreen();
+              Navigator.pop(context);
+            },
+          ),
+          actions: [
+            Consumer<ProgressProvider>(
+              builder: (context, progressProvider, child) {
+                final percentage = (progressProvider.progress * 100).toStringAsFixed(0);
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          value: progressProvider.progress,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          backgroundColor: Colors.grey[300],
+                          strokeWidth: 2.0,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Text('$percentage%', style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.white, Colors.grey[100]!],
+            ),
+          ),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text("What's your educational background?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: headingSize * 1.1,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    )),
+                const SizedBox(height: 10),
+                Text("Choose your highest level of education.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: subHeadingSize, color: Colors.grey[700])),
+                const SizedBox(height: 40),
+
+                ..._educationLevels.map((education) => Padding(
+                  padding: const EdgeInsets.only(bottom: 15),
+                  child: _buildEducationOption(education),
+                )),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _selectedEducation == "Other"
+                      ? Padding(
+                    key: ValueKey('textfield'), // Ensures smooth transition
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: TextField(
+                      controller: _customEducationController,
+                      maxLength: 25,
+                      onChanged: (value) {
+                        // Optional: update live if needed
+                      },
+                      decoration: InputDecoration(
+                        labelText: "Your Education",
+                        hintText: "Enter your Education",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade300,
+                            width: 1.5,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(
+                            color: pinkColor,
+                            width: 2.5,
+                          ),
+                        ),
+                        counterText: "${_customEducationController.text.length}/25",
+                        contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+                      ),
+                      style: const TextStyle(fontSize: 18, color: Colors.black87),
+                      cursorColor: pinkColor,
+                    ),
+                  )
+                      : const SizedBox.shrink(),
+                ),
+                const SizedBox(height: 50),
+                ElevatedButton(
+                  onPressed: _submitEducationSelection,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: pinkColor,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: const Text(
+                    "Continue",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
   }
 }

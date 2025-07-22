@@ -51,6 +51,11 @@ class _NameAgeScreenState extends State<NameAgeScreen> {
         return;
       }
 
+      // Store data in NameAgeProvider
+      final nameAgeProvider = Provider.of<NameAgeProvider>(context, listen: false);
+      nameAgeProvider.setFullName(_nameController.text.trim());
+      nameAgeProvider.setDateOfBirth(_selectedDate!);
+
       print("Name: ${_nameController.text}");
       print("Date of Birth: ${_dobController.text} (Age: $age)");
 

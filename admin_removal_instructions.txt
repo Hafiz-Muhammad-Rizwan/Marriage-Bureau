@@ -1,0 +1,25 @@
+# Admin Functionality Removal Instructions
+
+To remove all admin-related functionality from the Marriage Bureau project, please delete the following files and directories:
+
+## Admin Screens
+Delete the entire directory and all its contents:
+- d:\Clone Repository\Marriage-Bureau\lib\Screens\Admin\
+
+This directory contains:
+- admin_dashboard_screen.dart
+- admin_login_screen.dart
+- connection_detail_screen.dart
+- profile_detail_screen.dart
+- tabs/ (subdirectory with more admin UI components)
+
+## Admin Documentation
+These documentation files are no longer needed:
+- d:\Clone Repository\Marriage-Bureau\admin_panel_documentation.md
+- d:\Clone Repository\Marriage-Bureau\admin_panel_design_doc.md
+
+## Admin Service
+If it exists (not found in our search but mentioned in documentation):
+- d:\Clone Repository\Marriage-Bureau\lib\Services\admin_service.dart
+
+After removing these files, the project should be free of admin-related functionality.

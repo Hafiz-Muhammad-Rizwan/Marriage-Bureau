@@ -1,8 +1,8 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
-import 'package:marriage_bereau_app/RegistrationScreen/RelegiousPractice.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/ChildrenScreen.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/MoveAbroad.dart';
 import 'package:provider/provider.dart';
 
 class maritalStatus extends StatefulWidget
@@ -102,24 +102,49 @@ class MaritalStatusState extends State<maritalStatus>
                           final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
                           progressProvider.nextScreen();
                           await Future.delayed(Duration(milliseconds: 500));
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => RelegionPracticeScreen(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                const begin = Offset(1.0, 0.0); // Start from the right
-                                const end = Offset.zero; // End at the center
-                                const curve = Curves.easeInOut;
-                                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                var offsetAnimation = animation.drive(tween);
-                                return SlideTransition(
-                                  position: offsetAnimation,
-                                  child: child,
-                                );
-                              },
-                              transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
-                            ),
-                          );
+
+                          // Check if the selected status is "Never married"
+                          if (status.status == 'Never married') {
+                            // Skip the children screen and go directly to MoveAbroad screen
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => Moveabroad(),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  const begin = Offset(1.0, 0.0); // Start from the right
+                                  const end = Offset.zero; // End at the center
+                                  const curve = Curves.easeInOut;
+                                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                  var offsetAnimation = animation.drive(tween);
+                                  return SlideTransition(
+                                    position: offsetAnimation,
+                                    child: child,
+                                  );
+                                },
+                                transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
+                              ),
+                            );
+                          } else {
+                            // For all other statuses (Divorced, Widowed, etc.), show the children screen
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => Childrenscreen(),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  const begin = Offset(1.0, 0.0); // Start from the right
+                                  const end = Offset.zero; // End at the center
+                                  const curve = Curves.easeInOut;
+                                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                  var offsetAnimation = animation.drive(tween);
+                                  return SlideTransition(
+                                    position: offsetAnimation,
+                                    child: child,
+                                  );
+                                },
+                                transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
+                              ),
+                            );
+                          }
                         },
                       );
                     },
@@ -132,4 +157,6 @@ class MaritalStatusState extends State<maritalStatus>
       );
     });
   }
+
+
 }

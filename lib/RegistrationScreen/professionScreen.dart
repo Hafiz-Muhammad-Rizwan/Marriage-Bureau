@@ -13,6 +13,13 @@ class Professionscreen extends StatefulWidget {
 
 class _ProfessionscreenState extends State<Professionscreen> {
   String? _selectedProfession;
+  final TextEditingController _customProfessionController = TextEditingController();
+
+  @override
+  void dispose() {
+    _customProfessionController.dispose();
+    super.dispose();
+  }
 
   final List<String> _professions = [
     "Engineer",
@@ -50,7 +57,9 @@ class _ProfessionscreenState extends State<Professionscreen> {
   ];
 
   void _submitProfessionSelection() {
-    if (_selectedProfession == null) {
+    final professionProvider = Provider.of<ProfessionProvider>(context, listen: false);
+
+    if (professionProvider.selectedProfession == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select your profession to proceed!', style: TextStyle(color: Colors.white)),
@@ -61,18 +70,26 @@ class _ProfessionscreenState extends State<Professionscreen> {
       return;
     }
 
-    print("Selected Profession: $_selectedProfession");
+    if (professionProvider.selectedProfession?.name == "Other" &&
+        (_customProfessionController.text.trim().isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your profession!', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('You have selected: $_selectedProfession!', style: const TextStyle(color: Colors.white)),
-        backgroundColor: pinkColor,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    // Update the profession with custom input before proceeding
+    if (professionProvider.selectedProfession?.name == "Other") {
+      professionProvider.selectProfession(Profession(_customProfessionController.text.trim()));
+    }
+    print(professionProvider.selectedProfession?.name);
     final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
     progressProvider.nextScreen();
-    Navigator.push(context, MaterialPageRoute(builder: (context)=>EducationScreen()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => EducationScreen()));
   }
 
   @override
@@ -182,6 +199,52 @@ class _ProfessionscreenState extends State<Professionscreen> {
                     }).toList(),
                   ),
 
+                  Consumer<ProfessionProvider>(
+                    builder: (context, professionProvider, _) {
+                      bool isOtherSelected = professionProvider.selectedProfession?.name == "Other";
+
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: isOtherSelected
+                            ? Padding(
+                          key: ValueKey('textfield'), // Ensures smooth transition
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: TextField(
+                            controller: _customProfessionController,
+                            maxLength: 25,
+                            onChanged: (value) {
+
+                            },
+                            decoration: InputDecoration(
+                              labelText: "Your Profession",
+                              hintText: "Enter your profession",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                  width: 1.5,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                  color: pinkColor,
+                                  width: 2.5,
+                                ),
+                              ),
+                              counterText: "${_customProfessionController.text.length}/25",
+                              contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+                            ),
+                            style: const TextStyle(fontSize: 18, color: Colors.black87),
+                            cursorColor: pinkColor,
+                          ),
+                        )
+                            : const SizedBox.shrink(),
+                      );
+                    },
+                  ),
+
+
                   const SizedBox(height: 50),
 
                   ElevatedButton(
@@ -216,12 +279,19 @@ class _ProfessionscreenState extends State<Professionscreen> {
   }
 
   Widget _buildProfessionOption(String profession) {
-    bool isSelected = _selectedProfession == profession;
+    final professionProvider = Provider.of<ProfessionProvider>(context, listen: false);
+    bool isSelected = professionProvider.selectedProfession?.name == profession;
+
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedProfession = profession;
-        });
+        // Use the provider instead of local state
+        professionProvider.selectProfession(Profession(profession));
+
+        // Clear the text field when switching away from "Other"
+        if (profession != "Other") {
+          _customProfessionController.text = "";
+        }
+        setState(() {}); // Trigger a rebuild
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),

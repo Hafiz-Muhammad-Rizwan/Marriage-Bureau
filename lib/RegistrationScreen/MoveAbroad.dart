@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
-import 'package:marriage_bereau_app/RegistrationScreen/BornMuslim.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/SmokeScreen.dart';
+
 import 'package:provider/provider.dart';
 class Moveabroad extends StatefulWidget {
   const Moveabroad({super.key});
@@ -94,7 +95,7 @@ class _MoveabroadState extends State<Moveabroad> {
                         ),
                         tileColor: isSelected ? Colors.grey[200] : null,
                         trailing: isSelected ? Icon(Icons.check_circle, color: Colors.red) : null,
-                        onTap: () async{
+                        onTap: () async {
                           provider.selectOption(option);
                           final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
                           progressProvider.nextScreen();
@@ -102,10 +103,10 @@ class _MoveabroadState extends State<Moveabroad> {
                           Navigator.push(
                             context,
                             PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => Bornmuslim(),
+                              pageBuilder: (context, animation, secondaryAnimation) => Smokescreen(),
                               transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                const begin = Offset(1.0, 0.0); // Start from the right
-                                const end = Offset.zero; // End at the center
+                                const begin = Offset(1.0, 0.0);
+                                const end = Offset.zero;
                                 const curve = Curves.easeInOut;
                                 var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
                                 var offsetAnimation = animation.drive(tween);
@@ -114,7 +115,7 @@ class _MoveabroadState extends State<Moveabroad> {
                                   child: child,
                                 );
                               },
-                              transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
+                              transitionDuration: Duration(milliseconds: 500),
                             ),
                           );
                         },

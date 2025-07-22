@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
-import 'package:marriage_bereau_app/RegistrationScreen/ChildrenScreen.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/ParentsAliveScreen.dart';
 import 'package:provider/provider.dart';
+
 class Alcholscreen extends StatefulWidget {
   const Alcholscreen({super.key});
 
@@ -95,7 +96,7 @@ class _AlcholscreenState extends State<Alcholscreen> {
                         ),
                         tileColor: isSelected ? Colors.grey[200] : null,
                         trailing: isSelected ? Icon(Icons.check_circle, color: Colors.red) : null,
-                        onTap: ()async {
+                        onTap: () async {
                           provider.selectOption(option);
                           final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
                           progressProvider.nextScreen();
@@ -103,10 +104,10 @@ class _AlcholscreenState extends State<Alcholscreen> {
                           Navigator.push(
                             context,
                             PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => Childrenscreen(),
+                              pageBuilder: (context, animation, secondaryAnimation) => ParentsAliveScreen(),
                               transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                const begin = Offset(1.0, 0.0); // Start from the right
-                                const end = Offset.zero; // End at the center
+                                const begin = Offset(1.0, 0.0);
+                                const end = Offset.zero;
                                 const curve = Curves.easeInOut;
                                 var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
                                 var offsetAnimation = animation.drive(tween);
@@ -115,7 +116,7 @@ class _AlcholscreenState extends State<Alcholscreen> {
                                   child: child,
                                 );
                               },
-                              transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
+                              transitionDuration: Duration(milliseconds: 500),
                             ),
                           );
                         },

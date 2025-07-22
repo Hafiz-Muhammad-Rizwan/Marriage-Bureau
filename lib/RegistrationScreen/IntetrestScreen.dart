@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
-import 'package:marriage_bereau_app/RegistrationScreen/BioScreen.dart';
-import 'package:marriage_bereau_app/RegistrationScreen/PrayScreen.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/ProfileCompletionScreen.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/SmokeScreen.dart';
 import 'package:provider/provider.dart';
 
@@ -178,29 +177,7 @@ class _IntetrestscreenState extends State<Intetrestscreen> {
                             ),
                           ),
                           onPressed: provider.selectedInterests.isNotEmpty
-                              ? ()async {
-                            final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
-                            progressProvider.nextScreen();
-                            await Future.delayed(Duration(milliseconds: 500));
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => Bioscreen(),
-                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                  const begin = Offset(1.0, 0.0); // Start from the right
-                                  const end = Offset.zero; // End at the center
-                                  const curve = Curves.easeInOut;
-                                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                  var offsetAnimation = animation.drive(tween);
-                                  return SlideTransition(
-                                    position: offsetAnimation,
-                                    child: child,
-                                  );
-                                },
-                                transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
-                              ),
-                            );
-                          }
+                              ? () => _submitInterests()
                               : null,
                           child: Text(
                             'Select (${provider.selectedInterests.length})',
@@ -217,5 +194,60 @@ class _IntetrestscreenState extends State<Intetrestscreen> {
         ),
       );
     });
+  }
+
+  // Submit interests and navigate to the next screen
+  void _submitInterests() {
+    final interestProvider = Provider.of<InterestProvider>(context, listen: false);
+
+    if (interestProvider.selectedInterests.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one interest to proceed!', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    print("Selected Interests: ${interestProvider.selectedInterests.map((i) => i.option).toList()}");
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Interests saved successfully!', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.pink,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+    progressProvider.nextScreen();
+
+    // Get name, date of birth, and profile image path from the provider
+    final nameAgeProvider = Provider.of<NameAgeProvider>(context, listen: false);
+
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => ProfileCompletionScreen(
+          fullName: nameAgeProvider.fullName,
+          dateOfBirth: nameAgeProvider.dateOfBirth,
+          imagePath: nameAgeProvider.profileImagePath,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+        transitionDuration: Duration(milliseconds: 500),
+      ),
+    );
   }
 }

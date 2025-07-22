@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
@@ -99,29 +98,9 @@ class HeightState extends State<HeightScreen>
                         ),
                         tileColor: isSelected ? Colors.grey[200] : null,
                         trailing: isSelected ? Icon(Icons.check_circle, color: Colors.red) : null,
-                        onTap: () async{
+                        onTap: () {
                           provider.selectHeight(height);
-                          final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
-                          progressProvider.nextScreen();
-                          await Future.delayed(Duration(milliseconds: 500));
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => maritalStatus(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                const begin = Offset(1.0, 0.0); // Start from the right
-                                const end = Offset.zero; // End at the center
-                                const curve = Curves.easeInOut;
-                                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                var offsetAnimation = animation.drive(tween);
-                                return SlideTransition(
-                                  position: offsetAnimation,
-                                  child: child,
-                                );
-                              },
-                              transitionDuration: Duration(milliseconds: 500), // 0.5 seconds
-                            ),
-                          );
+                          _submitHeightSelection();
                         },
                       );
                     },
@@ -135,5 +114,37 @@ class HeightState extends State<HeightScreen>
 
       );
     });
+  }
+
+  void _submitHeightSelection() {
+    final heightProvider = Provider.of<HeightProvider>(context, listen: false);
+
+    if (heightProvider.selectedHeight == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select your height to proceed!', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    print("Selected Height: ${heightProvider.selectedHeight?.inches}");
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('You have selected: ${heightProvider.selectedHeight?.inches}!', style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.pink,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+    progressProvider.nextScreen();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => maritalStatus())
+    );
   }
 }

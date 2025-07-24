@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
 import 'package:marriage_bereau_app/Essentials/colors.dart';
 import 'package:marriage_bereau_app/Models/user_profile_model.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/Editing%20Screen.dart';
@@ -21,14 +22,49 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   List<UserProfile> _profiles = [];
+  List<UserProfile> _filteredProfiles = [];
   Set<String> _favoriteProfiles = {};
   bool _isLoading = true;
   String? _currentUserGender;
+
+  // Filter related variables
+  RangeValues _ageRange = const RangeValues(18, 60);
+  String? _selectedMaritalStatus;
+  String? _selectedCaste;
+  String? _selectedSect;
+  bool _filtersApplied = false;
+
+  // Marital status options - matching the options in MaritalStatusProvider
+  final List<String> _maritalStatusOptions = [
+    'All',
+    'Never married',
+    'Divorced',
+    'Widowed',
+    'Married',
+  ];
+
+  // We'll populate these from the Sign Up Logic providers
+  List<String> _casteOptions = ['All'];
+  List<String> _sectOptions = ['All'];
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    // Initialize filter options from providers
+    _initializeFilterOptions();
+  }
+
+  void _initializeFilterOptions() {
+    // Get caste options from CasteProvider
+    final casteProvider = Provider.of<CasteProvider>(context, listen: false);
+    _casteOptions = ['All'];
+    _casteOptions.addAll(casteProvider.castes.map((caste) => caste.name).toList());
+
+    // Get sect options from SectProvider
+    final sectProvider = Provider.of<SectProvider>(context, listen: false);
+    _sectOptions = ['All'];
+    _sectOptions.addAll(sectProvider.sects.map((sect) => sect.name).toList());
   }
 
   Future<void> _loadUserData() async {
@@ -87,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         setState(() {
           _profiles = tempProfiles;
+          _filteredProfiles = tempProfiles; // Initialize filtered profiles
           _isLoading = false;
         });
       }
@@ -141,6 +178,274 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _applyFilters() {
+    setState(() {
+      _filtersApplied = true;
+      _filteredProfiles = _profiles.where((profile) {
+        final ageValid = profile.age != null &&
+            profile.age! >= _ageRange.start &&
+            profile.age! <= _ageRange.end;
+        final maritalStatusValid = _selectedMaritalStatus == null ||
+            _selectedMaritalStatus == 'All' ||
+            profile.maritalStatus == _selectedMaritalStatus;
+        final casteValid = _selectedCaste == null ||
+            _selectedCaste == 'All' ||
+            profile.caste == _selectedCaste;
+        final sectValid = _selectedSect == null ||
+            _selectedSect == 'All' ||
+            profile.sect == _selectedSect;
+
+        return ageValid && maritalStatusValid && casteValid && sectValid;
+      }).toList();
+    });
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _ageRange = const RangeValues(18, 60);
+      _selectedMaritalStatus = null;
+      _selectedCaste = null;
+      _selectedSect = null;
+      _filtersApplied = false;
+      _filteredProfiles = _profiles; // Reset to all profiles
+    });
+  }
+
+  void _showFilterDialog() {
+    // Create temporary variables to hold filter values during dialog
+    RangeValues tempAgeRange = _ageRange;
+    String? tempMaritalStatus = _selectedMaritalStatus;
+    String? tempCaste = _selectedCaste;
+    String? tempSect = _selectedSect;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(Icons.filter_list, color: pinkColor),
+                  const SizedBox(width: 10),
+                  Text(
+                    "Filter Profiles",
+                    style: TextStyle(
+                      color: pinkColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              content: Container(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Age Range Section
+                      _buildFilterSectionTitle("Age Range"),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "${tempAgeRange.start.round()} years",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  "${tempAgeRange.end.round()} years",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            RangeSlider(
+                              values: tempAgeRange,
+                              min: 18,
+                              max: 100,
+                              divisions: 82,
+                              activeColor: pinkColor,
+                              inactiveColor: Colors.grey[300],
+                              labels: RangeLabels(
+                                tempAgeRange.start.round().toString(),
+                                tempAgeRange.end.round().toString(),
+                              ),
+                              onChanged: (values) {
+                                setState(() {
+                                  tempAgeRange = values;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Marital Status Section
+                      _buildFilterSectionTitle("Marital Status"),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: tempMaritalStatus,
+                            isExpanded: true,
+                            icon: Icon(Icons.arrow_drop_down, color: pinkColor),
+                            hint: Text("Select Marital Status"),
+                            items: _maritalStatusOptions.map((status) {
+                              return DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(status),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                tempMaritalStatus = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Caste Section
+                      _buildFilterSectionTitle("Caste"),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: tempCaste,
+                            isExpanded: true,
+                            icon: Icon(Icons.arrow_drop_down, color: pinkColor),
+                            hint: Text("Select Caste"),
+                            items: _casteOptions.map((caste) {
+                              return DropdownMenuItem<String>(
+                                value: caste,
+                                child: Text(caste),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                tempCaste = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Sect Section
+                      _buildFilterSectionTitle("Sect"),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: tempSect,
+                            isExpanded: true,
+                            icon: Icon(Icons.arrow_drop_down, color: pinkColor),
+                            hint: Text("Select Sect"),
+                            items: _sectOptions.map((sect) {
+                              return DropdownMenuItem<String>(
+                                value: sect,
+                                child: Text(sect),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                tempSect = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton.icon(
+                  onPressed: () {
+                    // Reset temp filters
+                    Navigator.of(context).pop();
+                    _resetFilters();
+                  },
+                  icon: Icon(Icons.refresh, color: Colors.grey[700]),
+                  label: Text(
+                    "Reset",
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Apply the temp filters to actual filters
+                    _ageRange = tempAgeRange;
+                    _selectedMaritalStatus = tempMaritalStatus;
+                    _selectedCaste = tempCaste;
+                    _selectedSect = tempSect;
+                    Navigator.of(context).pop();
+                    _applyFilters();
+                  },
+                  icon: Icon(Icons.check, color: Colors.white),
+                  label: Text(
+                    "Apply",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: pinkColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        color: pinkColor,
+        fontWeight: FontWeight.bold,
+        fontSize: 16,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -158,6 +463,31 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
+          // Add filter button
+          IconButton(
+            onPressed: _showFilterDialog,
+            icon: Stack(
+              children: [
+                const Icon(Icons.filter_list, color: Colors.white),
+                if (_filtersApplied)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 8,
+                        minHeight: 8,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -185,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ? Center(
               child: CircularProgressIndicator(color: pinkColor),
             )
-          : _profiles.isEmpty
+          : _filteredProfiles.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -228,10 +558,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 )
               : ListView.builder(
-                  itemCount: _profiles.length,
+                  itemCount: _filteredProfiles.length,
                   padding: EdgeInsets.all(10),
                   itemBuilder: (context, index) {
-                    final profile = _profiles[index];
+                    final profile = _filteredProfiles[index];
                     final bool isFavorite = _favoriteProfiles.contains(profile.userId);
 
                     return Card(

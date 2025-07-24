@@ -188,7 +188,7 @@ class _LoginscreenState extends State<Loginscreen> {
             Navigator.pushReplacement(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => SignUpScreen(),
+                pageBuilder: (context, animation, secondaryAnimation) => GenderScreen(),
                 transitionsBuilder: (context, animation, secondaryAnimation, child) {
                   const begin = Offset(1.0, 0.0);
                   const end = Offset.zero;

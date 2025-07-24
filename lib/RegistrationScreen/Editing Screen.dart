@@ -22,6 +22,11 @@ class _EditingScreenState extends State<EditingScreen> {
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _guardianControler=TextEditingController();
+  final TextEditingController _guardianNumberControler=TextEditingController();
+  final TextEditingController _addressControler=TextEditingController();
+  final TextEditingController _cityControler=TextEditingController();
+  final TextEditingController _countryControler=TextEditingController();
   DateTime? _selectedDate;
   String? _selectedEducation;
   String? _selectedAlcoholOption;
@@ -37,6 +42,8 @@ class _EditingScreenState extends State<EditingScreen> {
   String? _selectedSect;
   String? _selectedSmoke;
   String? _selectedCaste; // Added for caste selection
+  String? _homeType;
+
 
   // Siblings state variables
   bool? _hasSiblings;
@@ -176,6 +183,8 @@ class _EditingScreenState extends State<EditingScreen> {
     "Occasionally"
   ];
 
+  final List<String> _homeTypes=['Rent','Own Home','Lease'];
+
   @override
   void initState() {
     super.initState();
@@ -208,6 +217,11 @@ class _EditingScreenState extends State<EditingScreen> {
           // Set basic info
           _nameController.text = data['fullName'] ?? '';
           _existingImageUrl = data['profileImage'];
+          _guardianControler.text=data['guardianType'];
+          _guardianNumberControler.text=data['guardianNumber'];
+          _addressControler.text=data['address'];
+          _cityControler.text=data['city'];
+          _countryControler.text=data['country'];
 
           // Debug profile image URL
           print("Profile image URL loaded: $_existingImageUrl");
@@ -230,6 +244,7 @@ class _EditingScreenState extends State<EditingScreen> {
           _selectedSect = data['sect'];
           _selectedSmoke = data['smoking'];
           _selectedCaste = data['caste']; // Load caste from profile data
+          _homeType=data['homeType'];
 
           // Set children details if available
           if (data['totalChildren'] != null) {
@@ -535,6 +550,12 @@ class _EditingScreenState extends State<EditingScreen> {
     );
   }
 
+  void _showHomeTypes(){
+    _showOptionsBottomSheet(title: "Select Home Type", options: _homeTypes, selectedValue: _homeType, onSelect: (value){
+      _homeType=value;
+    },prefixIcon: Icons.home);
+  }
+
   Future<String?> _uploadProfileImage(File imageFile, String userId) async {
     try {
       // Create a unique filename with timestamp to avoid conflicts
@@ -681,6 +702,12 @@ class _EditingScreenState extends State<EditingScreen> {
         'sect': _selectedSect,
         'caste': _selectedCaste, // Include caste in the data to save
         'smoking': _selectedSmoke,
+        'homeType':_homeType,
+        'guardianNumber':_guardianNumberControler.text,
+        'guardianType':_guardianControler.text,
+        'city':_cityControler.text,
+        'country':_countryControler.text,
+        'address':_addressControler.text
       };
 
       // Add age calculation if date of birth is provided
@@ -923,8 +950,117 @@ class _EditingScreenState extends State<EditingScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Address",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: TextFormField(
+                          controller: _addressControler,
+                          decoration: InputDecoration(
+                            hintText: "Enter your street address",
+                            prefixIcon: Icon(Icons.person, color: Colors.pink),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   // Date of Birth field
+                  const SizedBox(height: 20),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "City",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: TextFormField(
+                          controller: _cityControler,
+                          decoration: InputDecoration(
+                            hintText: "Enter your city",
+                            prefixIcon: Icon(Icons.person, color: Colors.pink),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Country",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: TextFormField(
+                          controller: _countryControler,
+                          decoration: InputDecoration(
+                            hintText: "Enter your country",
+                            prefixIcon: Icon(Icons.person, color: Colors.pink),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -975,6 +1111,80 @@ class _EditingScreenState extends State<EditingScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Guardian Type",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: TextFormField(
+                          controller: _guardianControler,
+                          decoration: InputDecoration(
+                            hintText: "Enter your guardian",
+                            prefixIcon: Icon(Icons.person, color: Colors.pink),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Guardian Number",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: TextFormField(
+                          controller: _guardianNumberControler,
+                          decoration: InputDecoration(
+                            hintText: "Enter your guardian number",
+                            prefixIcon: Icon(Icons.person, color: Colors.pink),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
 
                   // Height field
                   _buildSelectionField(
@@ -1015,7 +1225,14 @@ class _EditingScreenState extends State<EditingScreen> {
                     prefixIcon: Icons.favorite,
                   ),
                   const SizedBox(height: 20),
-
+                  _buildSelectionField(
+                    label: "Home Type",
+                    selectedValue: _homeType,
+                    placeholder: "Select your home type",
+                    onTap: _showHomeTypes,
+                    prefixIcon: Icons.home,
+                  ),
+                  const SizedBox(height: 20),
                   // Education Level field
                   _buildSelectionField(
                     label: "Education Level",

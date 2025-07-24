@@ -37,6 +37,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late SectProvider _sectProvider;
   late EducationLevelProvider _educationLevelProvider;
   late ProfessionProvider _professionProvider;
+  late GuardianLevelProvider _guardianLevelProvider;
+  late HomeProvider _homeProvider;
 
   @override
   void initState() {
@@ -63,7 +65,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _sectProvider = Provider.of<SectProvider>(context, listen: false);
     _educationLevelProvider = Provider.of<EducationLevelProvider>(context, listen: false);
     _professionProvider = Provider.of<ProfessionProvider>(context, listen: false);
-
+    _guardianLevelProvider=Provider.of<GuardianLevelProvider>(context,listen: false);
+    _homeProvider=Provider.of<HomeProvider>(context,listen: false);
     // Set parents status
     if (widget.userProfile.isFatherAlive != null && widget.userProfile.isMotherAlive != null) {
       _parentsStatusProvider.setParentsStatus(

@@ -665,12 +665,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                         children: [
                                           Row(
                                             children: [
-                                              Text(
-                                                "${profile.fullName}, ${profile.age}",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 24,
-                                                  fontWeight: FontWeight.bold,
+                                               Expanded(
+                                                child: Text(
+                                                  "${profile.fullName}, ${profile.age}",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                               const SizedBox(width: 8),

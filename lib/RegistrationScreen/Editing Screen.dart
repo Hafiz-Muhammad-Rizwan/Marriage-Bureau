@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:marriage_bereau_app/Screens/signUpScreen.dart';
 import 'package:marriage_bereau_app/Services/profile_service.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -605,6 +606,149 @@ class _EditingScreenState extends State<EditingScreen> {
     }
   }
 
+  void showLoadingDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              const CircularProgressIndicator(color: Colors.red,),
+              const SizedBox(width: 20),
+              const Text("Deleting Account...",),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  Future<String?> _promptForPassword() async {
+
+    TextEditingController _passwordController = TextEditingController();
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Enter Your Password"),
+          content: TextField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: InputDecoration(hintText: "Enter your password"),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: pinkColor,
+                foregroundColor: Colors.white,
+              ),
+              child: Text("CANCEL"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: pinkColor,
+                foregroundColor: Colors.white,
+              ),
+              child: Text("Confirm"),
+              onPressed: () {
+                Navigator.of(context).pop(_passwordController.text);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteUserAccount() async {
+    try{
+      Navigator.of(context).pop();
+      showLoadingDialog();
+      final user=FirebaseAuth.instance.currentUser;
+      if(user==null) return;
+        //Delete from Authentication
+        final password=await _promptForPassword();
+        if(password==null || password.isEmpty){
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Passwrod Required', style: TextStyle(color: Colors.white)),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        final credential=EmailAuthProvider.credential(email: user.email!, password: password);
+        await user.reauthenticateWithCredential(credential);
+        //Delete from FireStore
+      final userId=user.uid;
+      //Delete from firestore
+      final firestore=FirebaseFirestore.instance;
+      await firestore.collection("profiles").doc(userId).delete();
+      await firestore.collection("users").doc(userId).delete();
+      final sendConnections=await firestore.collection("connectionRequests").where("senderId",isEqualTo: userId).get();
+      for(var doc in sendConnections.docs){
+        await doc.reference.delete();
+      }
+      final receiveConnections=await firestore.collection("connectionRequests").where("recipientId",isEqualTo: userId).get();
+      for(var doc in receiveConnections.docs){
+        await doc.reference.delete();
+      }
+      await user.delete();
+      Navigator.of(context).pop();
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>SignUpScreen()));
+    }
+    catch(e){
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to Delete Profile', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+    }
+  }
+
+  void _showDeleteDialog() {
+    showDialog(context: context, builder: (ctx)=>AlertDialog(
+      title: Text("Delete Account?", style: TextStyle(color: pinkColor)),
+      content: Text(
+        "Are you sure to delete account?",
+        style: TextStyle(fontSize: 16),
+        textAlign: TextAlign.center,
+      ),
+      actions: <Widget>[
+        ElevatedButton(
+          onPressed: () {
+            _deleteUserAccount();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: pinkColor,
+            foregroundColor: Colors.white,
+          ),
+          child: Text("DELETE"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: pinkColor,
+            foregroundColor: Colors.white,
+          ),
+          child: Text("CANCEL"),
+        ),
+      ],
+    ));
+  }
+
   Future<void> _saveChanges() async {
     // Validate inputs
     if (_nameController.text.isEmpty) {
@@ -782,1221 +926,1244 @@ class _EditingScreenState extends State<EditingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Edit Profile",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
+    return GestureDetector(
+      onTap: FocusScope.of(context).unfocus,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "Edit Profile",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          backgroundColor: Colors.pink,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
         ),
-        backgroundColor: Colors.pink,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.pink))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Stack(
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Colors.pink))
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 140,
+                            height: 140,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: _image != null
+                                  ? Image.file(
+                                      _image!,
+                                      width: 140,
+                                      height: 140,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : _existingImageUrl != null && !_hasImageLoadError
+                                      ? Image.network(
+                                          _existingImageUrl!,
+                                          width: 140,
+                                          height: 140,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            // Handle image loading errors
+                                            print("Error loading image: $error");
+                                            setState(() {
+                                              _hasImageLoadError = true;
+                                            });
+                                            return const Center(
+                                              child: Icon(
+                                                Icons.person,
+                                                size: 80,
+                                                color: Colors.grey,
+                                              ),
+                                            );
+                                          },
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value: loadingProgress.expectedTotalBytes != null
+                                                    ? loadingProgress.cumulativeBytesLoaded /
+                                                        (loadingProgress.expectedTotalBytes ?? 1)
+                                                    : null,
+                                                color: Colors.pink,
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      : const Center(
+                                          child: Icon(
+                                            Icons.person,
+                                            size: 80,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: _showImageSourceOptions,
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.pink,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 5,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Name field
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const Text(
+                          "Full Name",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
                         Container(
-                          width: 140,
-                          height: 140,
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 10,
-                                offset: Offset(0, 5),
+                                color: Colors.black12,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
                               ),
                             ],
                           ),
-                          child: ClipOval(
-                            child: _image != null
-                                ? Image.file(
-                                    _image!,
-                                    width: 140,
-                                    height: 140,
-                                    fit: BoxFit.cover,
-                                  )
-                                : _existingImageUrl != null && !_hasImageLoadError
-                                    ? Image.network(
-                                        _existingImageUrl!,
-                                        width: 140,
-                                        height: 140,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          // Handle image loading errors
-                                          print("Error loading image: $error");
-                                          setState(() {
-                                            _hasImageLoadError = true;
-                                          });
-                                          return const Center(
-                                            child: Icon(
-                                              Icons.person,
-                                              size: 80,
-                                              color: Colors.grey,
-                                            ),
-                                          );
-                                        },
-                                        loadingBuilder: (context, child, loadingProgress) {
-                                          if (loadingProgress == null) return child;
-                                          return Center(
-                                            child: CircularProgressIndicator(
-                                              value: loadingProgress.expectedTotalBytes != null
-                                                  ? loadingProgress.cumulativeBytesLoaded /
-                                                      (loadingProgress.expectedTotalBytes ?? 1)
-                                                  : null,
-                                              color: Colors.pink,
-                                            ),
-                                          );
-                                        },
-                                      )
-                                    : const Center(
-                                        child: Icon(
-                                          Icons.person,
-                                          size: 80,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: _showImageSourceOptions,
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.pink,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 5,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.white,
-                                size: 20,
-                              ),
+                          child: TextFormField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                              hintText: "Enter your full name",
+                              prefixIcon: Icon(Icons.person, color: Colors.pink),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Name field
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Full Name",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            hintText: "Enter your full name",
-                            prefixIcon: Icon(Icons.person, color: Colors.pink),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Address",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextFormField(
-                          controller: _addressControler,
-                          decoration: InputDecoration(
-                            hintText: "Enter your street address",
-                            prefixIcon: Icon(Icons.person, color: Colors.pink),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Date of Birth field
-                  const SizedBox(height: 20),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "City",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextFormField(
-                          controller: _cityControler,
-                          decoration: InputDecoration(
-                            hintText: "Enter your city",
-                            prefixIcon: Icon(Icons.person, color: Colors.pink),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Country",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextFormField(
-                          controller: _countryControler,
-                          decoration: InputDecoration(
-                            hintText: "Enter your country",
-                            prefixIcon: Icon(Icons.person, color: Colors.pink),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Date of Birth",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () => _selectDate(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.calendar_today, color: Colors.pink),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  _selectedDate != null
-                                      ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
-                                      : "Select your date of birth",
-                                  style: TextStyle(
-                                    color: _selectedDate != null ? Colors.black87 : Colors.grey[600],
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                              Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Guardian Type",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextFormField(
-                          controller: _guardianControler,
-                          decoration: InputDecoration(
-                            hintText: "Enter your guardian",
-                            prefixIcon: Icon(Icons.person, color: Colors.pink),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Guardian Number",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextFormField(
-                          controller: _guardianNumberControler,
-                          decoration: InputDecoration(
-                            hintText: "Enter your guardian number",
-                            prefixIcon: Icon(Icons.person, color: Colors.pink),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Height field
-                  _buildSelectionField(
-                    label: "Height",
-                    selectedValue: _selectedHeight,
-                    placeholder: "Select your height",
-                    onTap: () {
-                      _showOptionsBottomSheet(
-                        title: "Select Your Height",
-                        options: _heightOptions,
-                        selectedValue: _selectedHeight,
-                        onSelect: (value) {
-                          _selectedHeight = value;
-                        },
-                        prefixIcon: Icons.height,
-                      );
-                    },
-                    prefixIcon: Icons.height,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Marital Status field
-                  _buildSelectionField(
-                    label: "Marital Status",
-                    selectedValue: _selectedMaritalStatus,
-                    placeholder: "Select your marital status",
-                    onTap: () {
-                      _showOptionsBottomSheet(
-                        title: "Select Your Marital Status",
-                        options: _maritalStatusOptions,
-                        selectedValue: _selectedMaritalStatus,
-                        onSelect: (value) {
-                          _selectedMaritalStatus = value;
-                        },
-                        prefixIcon: Icons.favorite,
-                      );
-                    },
-                    prefixIcon: Icons.favorite,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildSelectionField(
-                    label: "Home Type",
-                    selectedValue: _homeType,
-                    placeholder: "Select your home type",
-                    onTap: _showHomeTypes,
-                    prefixIcon: Icons.home,
-                  ),
-                  const SizedBox(height: 20),
-                  // Education Level field
-                  _buildSelectionField(
-                    label: "Education Level",
-                    selectedValue: _selectedEducation,
-                    placeholder: "Select your education level",
-                    onTap: _showEducationLevelPicker,
-                    prefixIcon: Icons.school,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Profession field
-                  _buildSelectionField(
-                    label: "Profession",
-                    selectedValue: _selectedProfession,
-                    placeholder: "Select your profession",
-                    onTap: () {
-                      _showOptionsBottomSheet(
-                        title: "Select Your Profession",
-                        options: _professionOptions,
-                        selectedValue: _selectedProfession,
-                        onSelect: (value) {
-                          _selectedProfession = value;
-                        },
-                        prefixIcon: Icons.work,
-                      );
-                    },
-                    prefixIcon: Icons.work,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Sect field
-                  _buildSelectionField(
-                    label: "Sect",
-                    selectedValue: _selectedSect,
-                    placeholder: "Select your sect",
-                    onTap: () {
-                      _showOptionsBottomSheet(
-                        title: "Select Your Sect",
-                        options: _sectOptions,
-                        selectedValue: _selectedSect,
-                        onSelect: (value) {
-                          _selectedSect = value;
-                        },
-                        prefixIcon: Icons.mosque,
-                      );
-                    },
-                    prefixIcon: Icons.mosque,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Caste field
-                  _buildSelectionField(
-                    label: "Caste",
-                    selectedValue: _selectedCaste,
-                    placeholder: "Select your caste",
-                    onTap: _showCastePicker,
-                    prefixIcon: Icons.people,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Smoking field
-                  _buildSelectionField(
-                    label: "Do you smoke?",
-                    selectedValue: _selectedSmoke,
-                    placeholder: "Select an option",
-                    onTap: () {
-                      _showOptionsBottomSheet(
-                        title: "Do you smoke?",
-                        options: _smokeOptions,
-                        selectedValue: _selectedSmoke,
-                        onSelect: (value) {
-                          _selectedSmoke = value;
-                        },
-                        prefixIcon: Icons.smoking_rooms,
-                      );
-                    },
-                    prefixIcon: Icons.smoking_rooms,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Alcohol field
-                  _buildSelectionField(
-                    label: "Do you drink alcohol?",
-                    selectedValue: _selectedAlcoholOption,
-                    placeholder: "Select an option",
-                    onTap: _showAlcoholOptionsSheet,
-                    prefixIcon: Icons.local_bar,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Children field
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Do you have children?",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () {
-                          _showOptionsBottomSheet(
-                            title: "Do you have children?",
-                            options: ["Yes, I have children", "No, I don't have children"],
-                            selectedValue: _selectedChildren,
-                            onSelect: (value) {
-                              setState(() {
-                                _selectedChildren = value;
-                                _showChildrenDetails = value == "Yes, I have children";
-                              });
-                            },
-                            prefixIcon: Icons.child_care,
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.child_care, color: Colors.pink),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  _selectedChildren ?? "Select an option",
-                                  style: TextStyle(
-                                    color: _selectedChildren != null ? Colors.black87 : Colors.grey[600],
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                              Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Children details section
-                  if (_showChildrenDetails) ...[
                     const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.pink.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.pink.withOpacity(0.3)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Children Details",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.pink,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Address",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _addressControler,
+                            decoration: InputDecoration(
+                              hintText: "Enter your street address",
+                              prefixIcon: Icon(Icons.person, color: Colors.pink),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Total Children",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
+                        ),
+                      ],
+                    ),
+                    // Date of Birth field
+                    const SizedBox(height: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "City",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _cityControler,
+                            decoration: InputDecoration(
+                              hintText: "Enter your city",
+                              prefixIcon: Icon(Icons.person, color: Colors.pink),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Country",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _countryControler,
+                            decoration: InputDecoration(
+                              hintText: "Enter your country",
+                              prefixIcon: Icon(Icons.person, color: Colors.pink),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Date of Birth",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () => _selectDate(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.calendar_today, color: Colors.pink),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _selectedDate != null
+                                        ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
+                                        : "Select your date of birth",
+                                    style: TextStyle(
+                                      color: _selectedDate != null ? Colors.black87 : Colors.grey[600],
+                                      fontSize: 16,
                                     ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 4,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
+                                  ),
+                                ),
+                                Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Guardian Type",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _guardianControler,
+                            decoration: InputDecoration(
+                              hintText: "Enter your guardian",
+                              prefixIcon: Icon(Icons.person, color: Colors.pink),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Guardian Number",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _guardianNumberControler,
+                            decoration: InputDecoration(
+                              hintText: "Enter your guardian number",
+                              prefixIcon: Icon(Icons.person, color: Colors.pink),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Height field
+                    _buildSelectionField(
+                      label: "Height",
+                      selectedValue: _selectedHeight,
+                      placeholder: "Select your height",
+                      onTap: () {
+                        _showOptionsBottomSheet(
+                          title: "Select Your Height",
+                          options: _heightOptions,
+                          selectedValue: _selectedHeight,
+                          onSelect: (value) {
+                            _selectedHeight = value;
+                          },
+                          prefixIcon: Icons.height,
+                        );
+                      },
+                      prefixIcon: Icons.height,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Marital Status field
+                    _buildSelectionField(
+                      label: "Marital Status",
+                      selectedValue: _selectedMaritalStatus,
+                      placeholder: "Select your marital status",
+                      onTap: () {
+                        _showOptionsBottomSheet(
+                          title: "Select Your Marital Status",
+                          options: _maritalStatusOptions,
+                          selectedValue: _selectedMaritalStatus,
+                          onSelect: (value) {
+                            _selectedMaritalStatus = value;
+                          },
+                          prefixIcon: Icons.favorite,
+                        );
+                      },
+                      prefixIcon: Icons.favorite,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSelectionField(
+                      label: "Home Type",
+                      selectedValue: _homeType,
+                      placeholder: "Select your home type",
+                      onTap: _showHomeTypes,
+                      prefixIcon: Icons.home,
+                    ),
+                    const SizedBox(height: 20),
+                    // Education Level field
+                    _buildSelectionField(
+                      label: "Education Level",
+                      selectedValue: _selectedEducation,
+                      placeholder: "Select your education level",
+                      onTap: _showEducationLevelPicker,
+                      prefixIcon: Icons.school,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Profession field
+                    _buildSelectionField(
+                      label: "Profession",
+                      selectedValue: _selectedProfession,
+                      placeholder: "Select your profession",
+                      onTap: () {
+                        _showOptionsBottomSheet(
+                          title: "Select Your Profession",
+                          options: _professionOptions,
+                          selectedValue: _selectedProfession,
+                          onSelect: (value) {
+                            _selectedProfession = value;
+                          },
+                          prefixIcon: Icons.work,
+                        );
+                      },
+                      prefixIcon: Icons.work,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Sect field
+                    _buildSelectionField(
+                      label: "Sect",
+                      selectedValue: _selectedSect,
+                      placeholder: "Select your sect",
+                      onTap: () {
+                        _showOptionsBottomSheet(
+                          title: "Select Your Sect",
+                          options: _sectOptions,
+                          selectedValue: _selectedSect,
+                          onSelect: (value) {
+                            _selectedSect = value;
+                          },
+                          prefixIcon: Icons.mosque,
+                        );
+                      },
+                      prefixIcon: Icons.mosque,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Caste field
+                    _buildSelectionField(
+                      label: "Caste",
+                      selectedValue: _selectedCaste,
+                      placeholder: "Select your caste",
+                      onTap: _showCastePicker,
+                      prefixIcon: Icons.people,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Smoking field
+                    _buildSelectionField(
+                      label: "Do you smoke?",
+                      selectedValue: _selectedSmoke,
+                      placeholder: "Select an option",
+                      onTap: () {
+                        _showOptionsBottomSheet(
+                          title: "Do you smoke?",
+                          options: _smokeOptions,
+                          selectedValue: _selectedSmoke,
+                          onSelect: (value) {
+                            _selectedSmoke = value;
+                          },
+                          prefixIcon: Icons.smoking_rooms,
+                        );
+                      },
+                      prefixIcon: Icons.smoking_rooms,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Alcohol field
+                    _buildSelectionField(
+                      label: "Do you drink alcohol?",
+                      selectedValue: _selectedAlcoholOption,
+                      placeholder: "Select an option",
+                      onTap: _showAlcoholOptionsSheet,
+                      prefixIcon: Icons.local_bar,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Children field
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Do you have children?",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () {
+                            _showOptionsBottomSheet(
+                              title: "Do you have children?",
+                              options: ["Yes, I have children", "No, I don't have children"],
+                              selectedValue: _selectedChildren,
+                              onSelect: (value) {
+                                setState(() {
+                                  _selectedChildren = value;
+                                  _showChildrenDetails = value == "Yes, I have children";
+                                });
+                              },
+                              prefixIcon: Icons.child_care,
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.child_care, color: Colors.pink),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _selectedChildren ?? "Select an option",
+                                    style: TextStyle(
+                                      color: _selectedChildren != null ? Colors.black87 : Colors.grey[600],
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                                Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Children details section
+                    if (_showChildrenDetails) ...[
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.pink.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.pink.withOpacity(0.3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Children Details",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.pink,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "Total Children",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
                                       ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.remove, color: Colors.pink),
-                                            onPressed: _totalChildren > 1
-                                                ? () {
-                                                    setState(() {
-                                                      _totalChildren--;
-                                                      // Adjust sons/daughters if needed
-                                                      if (_sons + _daughters > _totalChildren) {
-                                                        if (_daughters > 0) {
-                                                          _daughters--;
-                                                        } else if (_sons > 0) {
-                                                          _sons--;
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 4,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.remove, color: Colors.pink),
+                                              onPressed: _totalChildren > 1
+                                                  ? () {
+                                                      setState(() {
+                                                        _totalChildren--;
+                                                        // Adjust sons/daughters if needed
+                                                        if (_sons + _daughters > _totalChildren) {
+                                                          if (_daughters > 0) {
+                                                            _daughters--;
+                                                          } else if (_sons > 0) {
+                                                            _sons--;
+                                                          }
                                                         }
-                                                      }
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                          Text(
-                                            "$_totalChildren",
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
+                                                      });
+                                                    }
+                                                  : null,
                                             ),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.add, color: Colors.pink),
-                                            onPressed: () {
-                                              setState(() {
-                                                _totalChildren++;
-                                              });
-                                            },
-                                          ),
-                                        ],
+                                            Text(
+                                              "$_totalChildren",
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.add, color: Colors.pink),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _totalChildren++;
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "Boys",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 4,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.remove, color: Colors.pink),
+                                              onPressed: _sons > 0
+                                                  ? () {
+                                                      setState(() {
+                                                        _sons--;
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                            Text(
+                                              "$_sons",
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.add, color: Colors.pink),
+                                              onPressed: _sons + _daughters < _totalChildren
+                                                  ? () {
+                                                      setState(() {
+                                                        _sons++;
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "Girls",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 4,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.remove, color: Colors.pink),
+                                              onPressed: _daughters > 0
+                                                  ? () {
+                                                      setState(() {
+                                                        _daughters--;
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                            Text(
+                                              "$_daughters",
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.add, color: Colors.pink),
+                                              onPressed: _sons + _daughters < _totalChildren
+                                                  ? () {
+                                                      setState(() {
+                                                        _daughters++;
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_sons + _daughters != _totalChildren)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: Text(
+                                  "The sum of boys and girls should equal the total number of children",
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+
+                    // Siblings field
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Do you have siblings?",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Boys",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 4,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.remove, color: Colors.pink),
-                                            onPressed: _sons > 0
-                                                ? () {
-                                                    setState(() {
-                                                      _sons--;
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                          Text(
-                                            "$_sons",
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.add, color: Colors.pink),
-                                            onPressed: _sons + _daughters < _totalChildren
-                                                ? () {
-                                                    setState(() {
-                                                      _sons++;
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () {
+                            _showOptionsBottomSheet(
+                              title: "Do you have siblings?",
+                              options: ["Yes", "No"],
+                              selectedValue: _hasSiblings == true ? "Yes" : (_hasSiblings == false ? "No" : null),
+                              onSelect: (value) {
+                                setState(() {
+                                  _hasSiblings = value == "Yes";
+                                  _showSiblingsDetails = value == "Yes";
+                                });
+                              },
+                              prefixIcon: Icons.family_restroom,
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 3),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Girls",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.family_restroom, color: Colors.pink),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _hasSiblings == true
+                                        ? "Yes"
+                                        : (_hasSiblings == false ? "No" : "Select an option"),
+                                    style: TextStyle(
+                                      color: _hasSiblings != null ? Colors.black87 : Colors.grey[600],
+                                      fontSize: 16,
                                     ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 4,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.remove, color: Colors.pink),
-                                            onPressed: _daughters > 0
-                                                ? () {
-                                                    setState(() {
-                                                      _daughters--;
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                          Text(
-                                            "$_daughters",
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.add, color: Colors.pink),
-                                            onPressed: _sons + _daughters < _totalChildren
-                                                ? () {
-                                                    setState(() {
-                                                      _daughters++;
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                                Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+                              ],
+                            ),
                           ),
-                          if (_sons + _daughters != _totalChildren)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: Text(
-                                "The sum of boys and girls should equal the total number of children",
-                                style: TextStyle(
-                                  color: Colors.redAccent,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                        ),
+                      ],
+                    ),
+
+                    // Siblings details section
+                    if (_showSiblingsDetails) ...[
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.pink.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.pink.withOpacity(0.3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Siblings Details",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.pink,
                               ),
                             ),
-                        ],
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "Total Siblings",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 4,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.remove, color: Colors.pink),
+                                              onPressed: _totalSiblings > 1
+                                                  ? () {
+                                                      setState(() {
+                                                        _totalSiblings--;
+                                                        // Adjust brothers/sisters if needed
+                                                        if (_brothers + _sisters > _totalSiblings) {
+                                                          if (_sisters > 0) {
+                                                            _sisters--;
+                                                          } else if (_brothers > 0) {
+                                                            _brothers--;
+                                                          }
+                                                        }
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                            Text(
+                                              "$_totalSiblings",
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.add, color: Colors.pink),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _totalSiblings++;
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "Brothers",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 4,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.remove, color: Colors.pink),
+                                              onPressed: _brothers > 0
+                                                  ? () {
+                                                      setState(() {
+                                                        _brothers--;
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                            Text(
+                                              "$_brothers",
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.add, color: Colors.pink),
+                                              onPressed: _brothers + _sisters < _totalSiblings
+                                                  ? () {
+                                                      setState(() {
+                                                        _brothers++;
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "Sisters",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 4,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.remove, color: Colors.pink),
+                                              onPressed: _sisters > 0
+                                                  ? () {
+                                                      setState(() {
+                                                        _sisters--;
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                            Text(
+                                              "$_sisters",
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.add, color: Colors.pink),
+                                              onPressed: _brothers + _sisters < _totalSiblings
+                                                  ? () {
+                                                      setState(() {
+                                                        _sisters++;
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_brothers + _sisters != _totalSiblings)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: Text(
+                                  "The sum of brothers and sisters should equal the total number of siblings",
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+
+                    // Move Abroad field
+                    _buildSelectionField(
+                      label: "Would you move abroad?",
+                      selectedValue: _selectedMoveAbroad,
+                      placeholder: "Select an option",
+                      onTap: () {
+                        _showOptionsBottomSheet(
+                          title: "Would you move abroad?",
+                          options: _moveAbroadOptions,
+                          selectedValue: _selectedMoveAbroad,
+                          onSelect: (value) {
+                            _selectedMoveAbroad = value;
+                          },
+                          prefixIcon: Icons.flight_takeoff,
+                        );
+                      },
+                      prefixIcon: Icons.flight_takeoff,
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Save button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isSaving ? null : _saveChanges,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pink,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.pink.withOpacity(0.5),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 5,
+                        ),
+                        child: _isSaving
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text(
+                                    "Saving...",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Text(
+                                "Save Changes",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 20),
-
-                  // Siblings field
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Do you have siblings?",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () {
-                          _showOptionsBottomSheet(
-                            title: "Do you have siblings?",
-                            options: ["Yes", "No"],
-                            selectedValue: _hasSiblings == true ? "Yes" : (_hasSiblings == false ? "No" : null),
-                            onSelect: (value) {
-                              setState(() {
-                                _hasSiblings = value == "Yes";
-                                _showSiblingsDetails = value == "Yes";
-                              });
-                            },
-                            prefixIcon: Icons.family_restroom,
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.family_restroom, color: Colors.pink),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  _hasSiblings == true
-                                      ? "Yes"
-                                      : (_hasSiblings == false ? "No" : "Select an option"),
-                                  style: TextStyle(
-                                    color: _hasSiblings != null ? Colors.black87 : Colors.grey[600],
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                              Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Siblings details section
-                  if (_showSiblingsDetails) ...[
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.pink.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.pink.withOpacity(0.3)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Siblings Details",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.pink,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Total Siblings",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 4,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.remove, color: Colors.pink),
-                                            onPressed: _totalSiblings > 1
-                                                ? () {
-                                                    setState(() {
-                                                      _totalSiblings--;
-                                                      // Adjust brothers/sisters if needed
-                                                      if (_brothers + _sisters > _totalSiblings) {
-                                                        if (_sisters > 0) {
-                                                          _sisters--;
-                                                        } else if (_brothers > 0) {
-                                                          _brothers--;
-                                                        }
-                                                      }
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                          Text(
-                                            "$_totalSiblings",
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.add, color: Colors.pink),
-                                            onPressed: () {
-                                              setState(() {
-                                                _totalSiblings++;
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Brothers",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 4,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.remove, color: Colors.pink),
-                                            onPressed: _brothers > 0
-                                                ? () {
-                                                    setState(() {
-                                                      _brothers--;
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                          Text(
-                                            "$_brothers",
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.add, color: Colors.pink),
-                                            onPressed: _brothers + _sisters < _totalSiblings
-                                                ? () {
-                                                    setState(() {
-                                                      _brothers++;
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Sisters",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 4,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.remove, color: Colors.pink),
-                                            onPressed: _sisters > 0
-                                                ? () {
-                                                    setState(() {
-                                                      _sisters--;
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                          Text(
-                                            "$_sisters",
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.add, color: Colors.pink),
-                                            onPressed: _brothers + _sisters < _totalSiblings
-                                                ? () {
-                                                    setState(() {
-                                                      _sisters++;
-                                                    });
-                                                  }
-                                                : null,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (_brothers + _sisters != _totalSiblings)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: Text(
-                                "The sum of brothers and sisters should equal the total number of siblings",
-                                style: TextStyle(
-                                  color: Colors.redAccent,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-
-                  // Move Abroad field
-                  _buildSelectionField(
-                    label: "Would you move abroad?",
-                    selectedValue: _selectedMoveAbroad,
-                    placeholder: "Select an option",
-                    onTap: () {
-                      _showOptionsBottomSheet(
-                        title: "Would you move abroad?",
-                        options: _moveAbroadOptions,
-                        selectedValue: _selectedMoveAbroad,
-                        onSelect: (value) {
-                          _selectedMoveAbroad = value;
-                        },
-                        prefixIcon: Icons.flight_takeoff,
-                      );
-                    },
-                    prefixIcon: Icons.flight_takeoff,
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Save button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _saveChanges,
+                    const SizedBox(height: 30),
+                    ElevatedButton(
+                      onPressed: (){
+                        _showDeleteDialog();
+                      },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.pink.withOpacity(0.5),
+                        backgroundColor: pinkColor,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        elevation: 5,
                       ),
-                      child: _isSaving
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                const Text(
-                                  "Saving...",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : const Text(
-                              "Save Changes",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      child: const Text(
+                        "Delete Account",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                ],
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marriage_bereau_app/Backend%20Logic/Sign%20Up%20Logic.dart';
+import 'package:marriage_bereau_app/RegistrationScreen/MoveAbroad.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/SiblingsDetailsScreen.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/ChildrenScreen.dart';
 import 'package:provider/provider.dart';
@@ -146,7 +147,7 @@ class _SiblingsScreenState extends State<SiblingsScreen> {
                             Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => Childrenscreen(),
+                                pageBuilder: (context, animation, secondaryAnimation) => Moveabroad(),
                                 transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                   const begin = Offset(1.0, 0.0);
                                   const end = Offset.zero;

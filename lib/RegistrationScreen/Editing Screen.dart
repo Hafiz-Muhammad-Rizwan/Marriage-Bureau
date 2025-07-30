@@ -559,12 +559,15 @@ class _EditingScreenState extends State<EditingScreen> {
 
   Future<String?> _uploadProfileImage(File imageFile, String userId) async {
     try {
-      // Create a unique filename with timestamp to avoid conflicts
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String filename = 'profile_$timestamp.jpg';
 
       // Reference to storage location - make sure the path exists
-      final Reference storageRef = _storage.ref().child('profile_images').child(userId).child(filename);
+      final Reference storageRef = _storage.ref().child('profile_images/$userId.jpg');
+
+      try {
+        await storageRef.delete();
+      } catch (e) {
+        print('No previous image found or delete failed: $e');
+      }
 
       print("Attempting to upload to: ${storageRef.fullPath}");
 
@@ -698,6 +701,10 @@ class _EditingScreenState extends State<EditingScreen> {
       for(var doc in receiveConnections.docs){
         await doc.reference.delete();
       }
+
+      final Reference storageRef = _storage.ref().child('profile_images/$userId.jpg');
+      await storageRef.delete();
+
       await user.delete();
       Navigator.of(context).pop();
       await FirebaseAuth.instance.signOut();

@@ -172,7 +172,7 @@ class ProfileService extends ChangeNotifier {
       }
 
       // Reference to storage location
-      final Reference storageRef = _storage.ref().child('profile_images/$userId');
+      final Reference storageRef = _storage.ref().child('profile_images/$userId.jpg');
 
       // Start upload with metadata
       final UploadTask uploadTask = storageRef.putFile(

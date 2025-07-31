@@ -561,7 +561,7 @@ class _EditingScreenState extends State<EditingScreen> {
     try {
 
       // Reference to storage location - make sure the path exists
-      final Reference storageRef = _storage.ref().child('profile_images/$userId.jpg');
+      final Reference storageRef = _storage.ref().child('profile_images/$userId');
 
       try {
         await storageRef.delete();

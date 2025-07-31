@@ -32,13 +32,6 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
           _imageFile = pickedFile;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Image selected!', style: TextStyle(color: whiteColor)),
-            backgroundColor: pinkColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -73,13 +66,6 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
           _imageFile = pickedFile;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Photo captured!', style: TextStyle(color: whiteColor)),
-            backgroundColor: pinkColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -119,14 +105,6 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
     nameAgeProvider.setProfileImagePath(imagePath);
 
     print("Image Path saved: $imagePath");
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Photo uploaded successfully!', style: TextStyle(color: whiteColor)),
-        backgroundColor: pinkColor,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
 
     final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
     progressProvider.nextScreen();
@@ -213,6 +191,29 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                 },
               ),
             ],
+          ),
+          bottomNavigationBar: Padding(padding: EdgeInsets.all(10),
+          child: ElevatedButton(
+            onPressed: () => _submitPhoto(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: pinkColor,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 8,
+              shadowColor: pinkColor.withOpacity(0.5),
+            ),
+            child: const Text(
+              "Continue",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ),
           ),
           body: Container(
             decoration: BoxDecoration(
@@ -322,32 +323,6 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                     ],
                   ),
 
-                  const Spacer(),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: _submitPhoto,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: pinkColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        elevation: 8,
-                        shadowColor: pinkColor.withOpacity(0.5),
-                      ),
-                      child: Text(
-                        "Continue",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

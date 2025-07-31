@@ -117,6 +117,44 @@ class _CasteSelectionScreenState extends State<CasteSelectionScreen> with Single
           ),
         ],
       ),
+      bottomNavigationBar: Padding(padding: EdgeInsets.all(10),
+      child:  ElevatedButton(
+        onPressed: casteProvider.selectedCaste == null || _isLoading
+            ? null
+            : () {
+          setState(() {
+            _isLoading = true;
+          });
+          widget.onNext();
+          setState(() {
+            _isLoading = false;
+          });
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: pinkColor,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 8,
+          shadowColor: pinkColor.withOpacity(0.5),
+          disabledBackgroundColor: pinkColor.withOpacity(0.5),
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        )
+            : const Text(
+          "Continue",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 1.0,
+          ),
+        ),
+      ),
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -216,43 +254,6 @@ class _CasteSelectionScreenState extends State<CasteSelectionScreen> with Single
                         cursorColor: pinkColor,
                       ),
                     ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: casteProvider.selectedCaste == null || _isLoading
-                        ? null
-                        : () {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      widget.onNext();
-                      setState(() {
-                        _isLoading = false;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: pinkColor,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      elevation: 8,
-                      shadowColor: pinkColor.withOpacity(0.5),
-                      disabledBackgroundColor: pinkColor.withOpacity(0.5),
-                    ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    )
-                        : const Text(
-                      "Continue",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             )

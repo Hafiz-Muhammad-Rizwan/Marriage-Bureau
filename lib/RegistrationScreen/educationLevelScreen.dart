@@ -189,6 +189,26 @@ class _EducationScreenState extends State<EducationScreen> {
             ),
           ],
         ),
+        bottomNavigationBar: Padding(padding: EdgeInsets.all(10),
+        child: ElevatedButton(
+          onPressed: _submitEducationSelection,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: pinkColor,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          child: const Text(
+            "Continue",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        ),
         body: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -256,25 +276,6 @@ class _EducationScreenState extends State<EducationScreen> {
                     ),
                   )
                       : const SizedBox.shrink(),
-                ),
-                const SizedBox(height: 50),
-                ElevatedButton(
-                  onPressed: _submitEducationSelection,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: pinkColor,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Text(
-                    "Continue",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
                 ),
               ],
             ),

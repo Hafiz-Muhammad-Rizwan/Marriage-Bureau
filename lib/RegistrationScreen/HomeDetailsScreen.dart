@@ -112,6 +112,27 @@ class _HomeDetailsScreenState extends State<HomeDetailsScreen> {
             ),
           ],
         ),
+        bottomNavigationBar: Padding(padding: EdgeInsets.all(10),
+        child:  ElevatedButton(
+          onPressed: _submitHomeDetails,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: pinkColor,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          child: const Text(
+            "Continue",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ),
+        ),
         body: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -137,6 +158,7 @@ class _HomeDetailsScreenState extends State<HomeDetailsScreen> {
                           label: Text(option,style: TextStyle(fontSize: 16),),
                           selected: isSelected,
                           selectedColor: pinkColor,
+                          checkmarkColor: Colors.white,
                           onSelected: (_) => homeProvider.setHome(option),
                           labelStyle: TextStyle(
                               color: isSelected ? Colors.white : Colors.black),
@@ -202,29 +224,7 @@ class _HomeDetailsScreenState extends State<HomeDetailsScreen> {
                             borderSide: BorderSide(color: pinkColor)),
                       ),
                     ),
-                    const SizedBox(height: 20),
 
-                    ElevatedButton(
-                      onPressed: _submitHomeDetails,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: pinkColor,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        elevation: 8,
-                        shadowColor: pinkColor.withOpacity(0.5),
-                      ),
-                      child: const Text(
-                        "Continue",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ),
                   ],
                 )
             )

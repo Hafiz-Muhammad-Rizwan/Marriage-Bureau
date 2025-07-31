@@ -4,6 +4,8 @@ import 'package:marriage_bereau_app/RegistrationScreen/ChildrenScreen.dart';
 import 'package:marriage_bereau_app/RegistrationScreen/MoveAbroad.dart';
 import 'package:provider/provider.dart';
 
+import '../Essentials/colors.dart';
+
 class SiblingsDetailsScreen extends StatefulWidget {
   const SiblingsDetailsScreen({super.key});
 
@@ -84,6 +86,57 @@ class _SiblingsDetailsScreenState extends State<SiblingsDetailsScreen> {
                 },
               ),
             ],
+          ),
+          bottomNavigationBar: Padding(padding: EdgeInsets.all(10),
+          child: ElevatedButton(
+            onPressed: (_brothers + _sisters == _totalSiblings)
+                ? () async {
+              // Update the siblings provider with detailed information
+              final siblingsProvider = Provider.of<SiblingsProvider>(context, listen: false);
+              siblingsProvider.setSiblingsDetails(_totalSiblings, _brothers, _sisters);
+
+              // Proceed to next screen
+              final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+              progressProvider.nextScreen();
+              await Future.delayed(Duration(milliseconds: 500));
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => Moveabroad(),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                  transitionDuration: Duration(milliseconds: 500),
+                ),
+              );
+            }
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: pinkColor,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 8,
+              shadowColor: pinkColor.withOpacity(0.5),
+            ),
+            child: Text(
+              'Continue',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
           ),
           body: SingleChildScrollView(
             child: Padding(
@@ -335,61 +388,6 @@ class _SiblingsDetailsScreenState extends State<SiblingsDetailsScreen> {
                         ],
                       ),
                     ),
-
-                  SizedBox(height: 40),
-
-                  // Continue button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: (_brothers + _sisters == _totalSiblings)
-                          ? () async {
-                              // Update the siblings provider with detailed information
-                              final siblingsProvider = Provider.of<SiblingsProvider>(context, listen: false);
-                              siblingsProvider.setSiblingsDetails(_totalSiblings, _brothers, _sisters);
-
-                              // Proceed to next screen
-                              final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
-                              progressProvider.nextScreen();
-                              await Future.delayed(Duration(milliseconds: 500));
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => Moveabroad(),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                    const begin = Offset(1.0, 0.0);
-                                    const end = Offset.zero;
-                                    const curve = Curves.easeInOut;
-                                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                    var offsetAnimation = animation.drive(tween);
-                                    return SlideTransition(
-                                      position: offsetAnimation,
-                                      child: child,
-                                    );
-                                  },
-                                  transitionDuration: Duration(milliseconds: 500),
-                                ),
-                              );
-                            }
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        disabledBackgroundColor: Colors.grey.shade300,
-                      ),
-                      child: Text(
-                        'Continue',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

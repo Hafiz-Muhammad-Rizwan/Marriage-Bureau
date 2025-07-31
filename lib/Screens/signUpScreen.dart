@@ -304,15 +304,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           _showEmailVerificationInfo();
 
           // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Registration successful! Please check your email for verification.",
-                  style: TextStyle(color: whiteColor)),
-              backgroundColor: pinkColor,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-
           // Navigate to gender screen to start profile completion
           Navigator.pushReplacement(
             context,

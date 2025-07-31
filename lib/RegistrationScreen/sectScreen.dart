@@ -79,6 +79,29 @@ class _SectscreenState extends State<Sectscreen> {
               ),
             ],
           ),
+          bottomNavigationBar: Padding(padding: EdgeInsets.all(10),
+          child: ElevatedButton(
+            onPressed: () => _submitSectSelection(sectProvider, progressProvider),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: pinkColor,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 8,
+              shadowColor: pinkColor.withOpacity(0.5),
+            ),
+            child: const Text(
+              "Continue",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ),
+          ),
           body: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -177,28 +200,6 @@ class _SectscreenState extends State<Sectscreen> {
                           cursorColor: pinkColor,
                         ),
                       ),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
-                      onPressed: () => _submitSectSelection(sectProvider, progressProvider),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: pinkColor,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        elevation: 8,
-                        shadowColor: pinkColor.withOpacity(0.5),
-                      ),
-                      child: const Text(
-                        "Continue",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -222,14 +223,6 @@ class _SectscreenState extends State<Sectscreen> {
     }
 
     print("Selected Sect: ${sectProvider.selectedSect?.name}");
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('You have selected: ${sectProvider.selectedSect?.name}!', style: const TextStyle(color: Colors.white)),
-        backgroundColor: pinkColor,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
 
     progressProvider.nextScreen();
 

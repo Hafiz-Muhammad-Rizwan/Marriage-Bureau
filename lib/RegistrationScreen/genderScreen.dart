@@ -51,6 +51,29 @@ class _GenderScreenState extends State<GenderScreen> {
             elevation: 0,
             centerTitle: true,
           ),
+          bottomNavigationBar: Padding(padding: EdgeInsets.all(10),
+          child: ElevatedButton(
+            onPressed: _submitForm,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: pinkColor,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 8,
+              shadowColor: pinkColor.withOpacity(0.5),
+            ),
+            child: const Text(
+              "Continue",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ),
+          ),
           body: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -90,27 +113,6 @@ class _GenderScreenState extends State<GenderScreen> {
                       const SizedBox(height: 40),
                       _buildGenderSelection(genderProvider),
                       const SizedBox(height: 50),
-                      ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: pinkColor,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          elevation: 8,
-                          shadowColor: pinkColor.withOpacity(0.5),
-                        ),
-                        child: const Text(
-                          "Continue",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),

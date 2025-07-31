@@ -132,14 +132,6 @@ class HeightState extends State<HeightScreen>
 
     print("Selected Height: ${heightProvider.selectedHeight?.inches}");
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('You have selected: ${heightProvider.selectedHeight?.inches}!', style: const TextStyle(color: Colors.white)),
-        backgroundColor: Colors.pink,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-
     final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
     progressProvider.nextScreen();
     Navigator.push(

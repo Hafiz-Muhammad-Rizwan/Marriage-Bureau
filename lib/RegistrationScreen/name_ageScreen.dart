@@ -61,9 +61,10 @@ class _NameAgeScreenState extends State<NameAgeScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Welcome, ${_nameController.text}! Details saved.', style: const TextStyle(color: Colors.white)),
+          content: Text('Welcome, ${_nameController.text}!', style: const TextStyle(color: Colors.white)),
           backgroundColor: pinkColor,
           behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 1),
         ),
       );
       final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
@@ -168,6 +169,29 @@ class _NameAgeScreenState extends State<NameAgeScreen> {
                 ),
               ],
             ),
+            bottomNavigationBar: Padding(padding: EdgeInsets.all(10),
+            child: ElevatedButton(
+              onPressed: _submitForm,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: pinkColor,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                elevation: 8,
+                shadowColor: pinkColor.withOpacity(0.5),
+              ),
+              child: const Text(
+                "Continue",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ),
+            ),
             body: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -221,27 +245,6 @@ class _NameAgeScreenState extends State<NameAgeScreen> {
                         const SizedBox(height: 25),
                         _buildDatePickerField(),
                         const SizedBox(height: 50),
-                        ElevatedButton(
-                          onPressed: _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: pinkColor,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            elevation: 8,
-                            shadowColor: pinkColor.withOpacity(0.5),
-                          ),
-                          child: const Text(
-                            "Continue",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),

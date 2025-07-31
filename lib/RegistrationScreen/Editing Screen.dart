@@ -354,6 +354,59 @@ class _EditingScreenState extends State<EditingScreen> {
     }
   }
 
+  Future<String?> _showOtherInputDialog(BuildContext context, String title) {
+    final TextEditingController _controller = TextEditingController();
+
+    return showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            "Enter your $title",
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          content: TextField(
+            controller: _controller,
+            maxLength: 25,
+            autofocus: true,
+            cursorColor: Colors.pink,
+            decoration: InputDecoration(
+              hintText: "Enter your $title",
+              contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 18),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: const BorderSide(color: Colors.pink, width: 2.0),
+              ),
+            ),
+            style: const TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                Navigator.pop(context, _controller.text.trim());
+              },
+              child: const Text("OK", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   // Generic bottom sheet for options selection
   void _showOptionsBottomSheet({
     required String title,
@@ -363,7 +416,6 @@ class _EditingScreenState extends State<EditingScreen> {
     IconData? prefixIcon,
   }) {
     String? tempSelected = selectedValue;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -383,7 +435,7 @@ class _EditingScreenState extends State<EditingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    title,
+                    "Select your $title",
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -415,10 +467,18 @@ class _EditingScreenState extends State<EditingScreen> {
                                 width: isSelected ? 2 : 1,
                               ),
                             ),
-                            onTap: () {
-                              setModalState(() {
-                                tempSelected = option;
-                              });
+                            onTap: () async{
+                              if (option == "Other") {
+                                final result = await _showOtherInputDialog(context, title);
+                                if (result != null && result.trim().isNotEmpty) {
+                                  onSelect(result.trim());
+                                  Navigator.pop(context); // Close bottom sheet
+                                }
+                              } else {
+                                setModalState(() {
+                                  tempSelected = option;
+                                });
+                              }
                             },
                           ),
                         );
@@ -428,12 +488,10 @@ class _EditingScreenState extends State<EditingScreen> {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      if (tempSelected != null) {
-                        setState(() {
-                          onSelect(tempSelected!);
-                        });
+                      if (tempSelected != null && tempSelected != "Other") {
+                        onSelect(tempSelected!);
+                        Navigator.pop(context);
                       }
-                      Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.pink,
@@ -516,7 +574,7 @@ class _EditingScreenState extends State<EditingScreen> {
   // Options pickers
   void _showEducationLevelPicker() {
     _showOptionsBottomSheet(
-      title: "Select Your Education Level",
+      title: "Education Level",
       options: _educationLevels,
       selectedValue: _selectedEducation,
       onSelect: (value) {
@@ -528,7 +586,7 @@ class _EditingScreenState extends State<EditingScreen> {
 
   void _showAlcoholOptionsSheet() {
     _showOptionsBottomSheet(
-      title: "Do you drink alcohol?",
+      title: "Option",
       options: ["Never", "Occasionally", "Socially", "Regularly", "Prefer not to say"],
       selectedValue: _selectedAlcoholOption,
       onSelect: (value) {
@@ -541,7 +599,7 @@ class _EditingScreenState extends State<EditingScreen> {
   // Show caste picker
   void _showCastePicker() {
     _showOptionsBottomSheet(
-      title: "Select Your Caste",
+      title: "Caste",
       options: _casteOptions,
       selectedValue: _selectedCaste,
       onSelect: (value) {
@@ -552,7 +610,7 @@ class _EditingScreenState extends State<EditingScreen> {
   }
 
   void _showHomeTypes(){
-    _showOptionsBottomSheet(title: "Select Home Type", options: _homeTypes, selectedValue: _homeType, onSelect: (value){
+    _showOptionsBottomSheet(title: "Home Type", options: _homeTypes, selectedValue: _homeType, onSelect: (value){
       _homeType=value;
     },prefixIcon: Icons.home);
   }
@@ -755,6 +813,7 @@ class _EditingScreenState extends State<EditingScreen> {
       ],
     ));
   }
+
 
   Future<void> _saveChanges() async {
     // Validate inputs
@@ -1346,7 +1405,7 @@ class _EditingScreenState extends State<EditingScreen> {
                       placeholder: "Select your height",
                       onTap: () {
                         _showOptionsBottomSheet(
-                          title: "Select Your Height",
+                          title: "Height",
                           options: _heightOptions,
                           selectedValue: _selectedHeight,
                           onSelect: (value) {
@@ -1366,7 +1425,7 @@ class _EditingScreenState extends State<EditingScreen> {
                       placeholder: "Select your marital status",
                       onTap: () {
                         _showOptionsBottomSheet(
-                          title: "Select Your Marital Status",
+                          title: "Marital Status",
                           options: _maritalStatusOptions,
                           selectedValue: _selectedMaritalStatus,
                           onSelect: (value) {
@@ -1390,7 +1449,7 @@ class _EditingScreenState extends State<EditingScreen> {
                     _buildSelectionField(
                       label: "Education Level",
                       selectedValue: _selectedEducation,
-                      placeholder: "Select your education level",
+                      placeholder: "education level",
                       onTap: _showEducationLevelPicker,
                       prefixIcon: Icons.school,
                     ),
@@ -1403,7 +1462,7 @@ class _EditingScreenState extends State<EditingScreen> {
                       placeholder: "Select your profession",
                       onTap: () {
                         _showOptionsBottomSheet(
-                          title: "Select Your Profession",
+                          title: "Profession",
                           options: _professionOptions,
                           selectedValue: _selectedProfession,
                           onSelect: (value) {
@@ -1423,7 +1482,7 @@ class _EditingScreenState extends State<EditingScreen> {
                       placeholder: "Select your sect",
                       onTap: () {
                         _showOptionsBottomSheet(
-                          title: "Select Your Sect",
+                          title: "Sect",
                           options: _sectOptions,
                           selectedValue: _selectedSect,
                           onSelect: (value) {
@@ -1453,7 +1512,7 @@ class _EditingScreenState extends State<EditingScreen> {
                       placeholder: "Select an option",
                       onTap: () {
                         _showOptionsBottomSheet(
-                          title: "Do you smoke?",
+                          title: "Option",
                           options: _smokeOptions,
                           selectedValue: _selectedSmoke,
                           onSelect: (value) {
@@ -1492,7 +1551,7 @@ class _EditingScreenState extends State<EditingScreen> {
                         GestureDetector(
                           onTap: () {
                             _showOptionsBottomSheet(
-                              title: "Do you have children?",
+                              title: "Option",
                               options: ["Yes, I have children", "No, I don't have children"],
                               selectedValue: _selectedChildren,
                               onSelect: (value) {
@@ -1793,7 +1852,7 @@ class _EditingScreenState extends State<EditingScreen> {
                         GestureDetector(
                           onTap: () {
                             _showOptionsBottomSheet(
-                              title: "Do you have siblings?",
+                              title: "Option",
                               options: ["Yes", "No"],
                               selectedValue: _hasSiblings == true ? "Yes" : (_hasSiblings == false ? "No" : null),
                               onSelect: (value) {
@@ -2087,7 +2146,7 @@ class _EditingScreenState extends State<EditingScreen> {
                       placeholder: "Select an option",
                       onTap: () {
                         _showOptionsBottomSheet(
-                          title: "Would you move abroad?",
+                          title: "Option",
                           options: _moveAbroadOptions,
                           selectedValue: _selectedMoveAbroad,
                           onSelect: (value) {

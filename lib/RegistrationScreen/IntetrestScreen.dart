@@ -213,13 +213,7 @@ class _IntetrestscreenState extends State<Intetrestscreen> {
 
     print("Selected Interests: ${interestProvider.selectedInterests.map((i) => i.option).toList()}");
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Interests saved successfully!', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.pink,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+
 
     final progressProvider = Provider.of<ProgressProvider>(context, listen: false);
     progressProvider.nextScreen();

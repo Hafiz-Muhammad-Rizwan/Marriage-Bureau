@@ -161,6 +161,20 @@ class _GuardianScreenState extends State<GuardianScreen> {
             ),
           ],
         ),
+        bottomNavigationBar: Padding(padding: EdgeInsets.all(10),
+        child: ElevatedButton(
+          onPressed: _submitGuardianSelection,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: pinkColor,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          child: const Text("Continue",
+              style: TextStyle(fontSize: 18, color: Colors.white)),
+        ),
+        ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -225,19 +239,6 @@ class _GuardianScreenState extends State<GuardianScreen> {
                     borderSide: const BorderSide(color: Colors.pink),
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _submitGuardianSelection,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  minimumSize: const Size.fromHeight(50),
-                ),
-                child: const Text("Continue",
-                    style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
             ],
           ),

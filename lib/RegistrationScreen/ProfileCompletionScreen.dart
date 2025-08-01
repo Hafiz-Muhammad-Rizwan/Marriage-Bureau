@@ -7,6 +7,7 @@ import 'package:marriage_bereau_app/Essentials/colors.dart';
 import 'package:marriage_bereau_app/Essentials/fontSizes.dart';
 import 'package:marriage_bereau_app/Models/user_profile_model.dart';
 import 'package:marriage_bereau_app/Screens/homeScreen.dart';
+import 'package:marriage_bereau_app/Services/LogIn_Service.dart';
 import 'package:marriage_bereau_app/Services/profile_service.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -177,6 +178,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
         address: homeAddress
       );
 
+      await LogInStatus.setLoggedIn(true);
+      print(LogInStatus.isLoggedIn);
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => HomeScreen()),
             (route) => false,

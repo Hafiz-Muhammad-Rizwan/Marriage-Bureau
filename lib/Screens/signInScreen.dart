@@ -7,6 +7,7 @@ import '../Essentials/colors.dart';
 import '../Essentials/fontSizes.dart';
 import '../Essentials/customTextField.dart';
 import '../Backend Logic/Sign Up Logic.dart';
+import '../Services/LogIn_Service.dart';
 
 class Loginscreen extends StatefulWidget {
   const Loginscreen({super.key});
@@ -17,6 +18,7 @@ class Loginscreen extends StatefulWidget {
 
 class _LoginscreenState extends State<Loginscreen> {
   final _emailController = TextEditingController();
+  final TextEditingController _forgetEmailController = TextEditingController();
   final _passController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _termsAccepted = false;
@@ -55,58 +57,136 @@ class _LoginscreenState extends State<Loginscreen> {
     );
   }
 
-  void _showEmailVerificationDialog() {
+  // void _showEmailVerificationDialog() {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text("Email Verification Required", style: TextStyle(color: pinkColor)),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Icon(Icons.mark_email_unread, size: 70, color: pinkColor),
+  //             SizedBox(height: 16),
+  //             Text(
+  //               "Your email is not verified yet. Please check your inbox and click the verification link.",
+  //               style: TextStyle(fontSize: 16),
+  //               textAlign: TextAlign.center,
+  //             ),
+  //             SizedBox(height: 12),
+  //             Text(
+  //               "Didn't receive an email?",
+  //               style: TextStyle(color: Colors.grey[700]),
+  //             ),
+  //           ],
+  //         ),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             onPressed: () async {
+  //               final signUp = Provider.of<SignUp>(context, listen: false);
+  //               await signUp.sendEmailVerification();
+  //               ScaffoldMessenger.of(context).showSnackBar(
+  //                 SnackBar(
+  //                   content: Text("Verification email sent!", style: TextStyle(color: whiteColor)),
+  //                   backgroundColor: Colors.green,
+  //                   behavior: SnackBarBehavior.floating,
+  //                 ),
+  //               );
+  //             },
+  //             child: Text("Resend Email", style: TextStyle(color: Colors.blue)),
+  //           ),
+  //           ElevatedButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //             style: ElevatedButton.styleFrom(
+  //               backgroundColor: pinkColor,
+  //               foregroundColor: Colors.white,
+  //             ),
+  //             child: Text("OK"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+  void _showForgetPasswordDialogue(){
+    final signUp = Provider.of<SignUp>(context, listen: false);
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Email Verification Required", style: TextStyle(color: pinkColor)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.mark_email_unread, size: 70, color: pinkColor),
-              SizedBox(height: 16),
-              Text(
-                "Your email is not verified yet. Please check your inbox and click the verification link.",
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 12),
-              Text(
-                "Didn't receive an email?",
-                style: TextStyle(color: Colors.grey[700]),
-              ),
-            ],
+      builder: (context)=>AlertDialog(
+
+        title: Text("Reset Password"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomTextField(
+              label: "Email address to send reset Link",
+              hint: "example@email.com",
+              controller: _forgetEmailController,
+              prefixIcon: Icons.email,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              focusedBorderColor: pinkColor,
+              fillColor: Colors.grey[100]!,
+              borderRadius: 12,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your email';
+                }
+                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                  return 'Please enter a valid email address';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: pinkColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text("Cancel"),
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () async {
-                final signUp = Provider.of<SignUp>(context, listen: false);
-                await signUp.sendEmailVerification();
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: pinkColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text("Send Link"),
+            onPressed: () async {
+              final status=await signUp.sendResentLink(_forgetEmailController.text.trim());
+              if(status==true){
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text("Verification email sent!", style: TextStyle(color: whiteColor)),
-                    backgroundColor: Colors.green,
+                    content: const Text('Password reset link sent to your email', style: TextStyle(color: Colors.white)),
+                    backgroundColor: pinkColor,
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
-              },
-              child: Text("Resend Email", style: TextStyle(color: Colors.blue)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: pinkColor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
+              }
+              else{
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Something went wrong try again', style: TextStyle(color: Colors.white)),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+              Navigator.of(context).pop();
+              _forgetEmailController.clear();
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -148,15 +228,15 @@ class _LoginscreenState extends State<Loginscreen> {
           );
         } else {
           // Check if email is verified
-          bool isEmailVerified = await signUp.isEmailVerified();
-
-          if (!isEmailVerified) {
-            setState(() {
-              _isLoading = false;
-            });
-            _showEmailVerificationDialog();
-            return;
-          }
+          // bool isEmailVerified = await signUp.isEmailVerified();
+          //
+          // if (!isEmailVerified) {
+          //   setState(() {
+          //     _isLoading = false;
+          //   });
+          //   _showEmailVerificationDialog();
+          //   return;
+          // }
 
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
@@ -169,6 +249,8 @@ class _LoginscreenState extends State<Loginscreen> {
 
           // Navigate based on profile completion status
           if (result.isProfileComplete) {
+            await LogInStatus.setLoggedIn(true);
+            print(LogInStatus.isLoggedIn());
             Navigator.pushReplacement(
               context,
               PageRouteBuilder(
@@ -305,7 +387,6 @@ class _LoginscreenState extends State<Loginscreen> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: 20),
                             CustomTextField(
                               label: "Password",
                               hint: "Enter your password",
@@ -338,30 +419,19 @@ class _LoginscreenState extends State<Loginscreen> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: 20),
                             Align(
                               alignment: Alignment.centerRight,
-                              child: GestureDetector(
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text("Forgot Password tapped!", style: TextStyle(color: whiteColor)),
-                                      backgroundColor: pinkColor,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  "Forgot Password?",
-                                  style: TextStyle(
-                                    color: pinkColor,
-                                    fontSize: subHeadingSize * 0.9,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                              child: TextButton(onPressed: (){
+                                _showForgetPasswordDialogue();
+                              }, child: Text(
+                                "Forgot Password?",
+                                style: TextStyle(
+                                  color: pinkColor,
+                                  fontSize: subHeadingSize * 0.9,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                              ),
+                              ),),
                             ),
-                            SizedBox(height: 20),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
@@ -425,7 +495,6 @@ class _LoginscreenState extends State<Loginscreen> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 25),
                             SizedBox(
                               width: double.infinity,
                               height: 55,
@@ -464,7 +533,7 @@ class _LoginscreenState extends State<Loginscreen> {
                           const SizedBox(width: 5),
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(
+                              Navigator.pushReplacement(
                                 context,
                                 PageRouteBuilder(
                                   pageBuilder: (context, animation, secondaryAnimation) => SignUpScreen(),

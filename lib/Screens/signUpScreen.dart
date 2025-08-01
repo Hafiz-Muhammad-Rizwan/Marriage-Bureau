@@ -19,7 +19,6 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-  final _emailOtpController = TextEditingController();
   final _passController = TextEditingController();
   final _confirmPassController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -27,15 +26,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
-  bool _isEmailVerified = false;
-  bool _showEmailOtpField = false;
-  String? _emailVerificationCode;
 
   @override
   void dispose() {
     _phoneController.dispose();
     _emailController.dispose();
-    _emailOtpController.dispose();
     _passController.dispose();
     _confirmPassController.dispose();
     super.dispose();
@@ -66,190 +61,190 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _showEmailVerificationInfo() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Email Verification", style: TextStyle(color: pinkColor)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.mark_email_read, size: 70, color: Colors.green),
-              SizedBox(height: 16),
-              Text(
-                "A verification email has been sent to your email address. Please check your inbox and click the verification link to activate your account.",
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: pinkColor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Generate OTP for email verification
-  String _generateEmailOTP() {
-    final int min = 100000; // Minimum 6-digit number
-    final int max = 999999; // Maximum 6-digit number
-    final random = new Random();
-    final int code = min + random.nextInt(max - min);
-    return code.toString();
-  }
-
-  // Send OTP for email verification
-  Future<void> _sendEmailOtp() async {
-    if (_emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Please enter your email address",
-              style: TextStyle(color: whiteColor)),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    // Validate email format
-    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-    if (!emailRegex.hasMatch(_emailController.text.trim())) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Please enter a valid email address",
-              style: TextStyle(color: whiteColor)),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // Generate OTP
-      _emailVerificationCode = _generateEmailOTP();
-
-      // Get name for email (if available)
-      String name = "User"; // Default name if none provided
-
-      // Send OTP email using EmailService
-      bool emailSent = await EmailService.sendOtpEmail(
-        email: _emailController.text.trim(),
-        otp: _emailVerificationCode!,
-        name: name,
-      );
-
-      if (emailSent) {
-        setState(() {
-          _showEmailOtpField = true;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("OTP sent to your email. Please check your inbox.",
-                style: TextStyle(color: whiteColor)),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 5),
-          ),
-        );
-      } else {
-        // Fallback to mock or show error
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to send email OTP. For testing, the OTP is: $_emailVerificationCode",
-                style: TextStyle(color: whiteColor)),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 10),
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error sending email OTP: ${e.toString()}",
-              style: TextStyle(color: whiteColor)),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  // Verify the entered email OTP
-  void _verifyEmailOtp() {
-    if (_emailOtpController.text.isEmpty || _emailVerificationCode == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Please enter the OTP sent to your email",
-              style: TextStyle(color: whiteColor)),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    if (_emailOtpController.text.trim() == _emailVerificationCode) {
-      setState(() {
-        _isEmailVerified = true;
-        _showEmailOtpField = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Email verified successfully!",
-              style: TextStyle(color: whiteColor)),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Invalid OTP. Please try again.",
-              style: TextStyle(color: whiteColor)),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
+  // void _showEmailVerificationInfo() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text("Email Verification", style: TextStyle(color: pinkColor)),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Icon(Icons.mark_email_read, size: 70, color: Colors.green),
+  //             SizedBox(height: 16),
+  //             Text(
+  //               "A verification email has been sent to your email address. Please check your inbox and click the verification link to activate your account.",
+  //               style: TextStyle(fontSize: 16),
+  //               textAlign: TextAlign.center,
+  //             ),
+  //           ],
+  //         ),
+  //         actions: <Widget>[
+  //           ElevatedButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //             style: ElevatedButton.styleFrom(
+  //               backgroundColor: pinkColor,
+  //               foregroundColor: Colors.white,
+  //             ),
+  //             child: Text("OK"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+  //
+  // // Generate OTP for email verification
+  // String _generateEmailOTP() {
+  //   final int min = 100000; // Minimum 6-digit number
+  //   final int max = 999999; // Maximum 6-digit number
+  //   final random = new Random();
+  //   final int code = min + random.nextInt(max - min);
+  //   return code.toString();
+  // }
+  //
+  // // Send OTP for email verification
+  // Future<void> _sendEmailOtp() async {
+  //   if (_emailController.text.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text("Please enter your email address",
+  //             style: TextStyle(color: whiteColor)),
+  //         backgroundColor: Colors.redAccent,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //     return;
+  //   }
+  //
+  //   // Validate email format
+  //   final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+  //   if (!emailRegex.hasMatch(_emailController.text.trim())) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text("Please enter a valid email address",
+  //             style: TextStyle(color: whiteColor)),
+  //         backgroundColor: Colors.redAccent,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //     return;
+  //   }
+  //
+  //   setState(() {
+  //     _isLoading = true;
+  //   });
+  //
+  //   try {
+  //     // Generate OTP
+  //     _emailVerificationCode = _generateEmailOTP();
+  //
+  //     // Get name for email (if available)
+  //     String name = "User"; // Default name if none provided
+  //
+  //     // Send OTP email using EmailService
+  //     bool emailSent = await EmailService.sendOtpEmail(
+  //       email: _emailController.text.trim(),
+  //       otp: _emailVerificationCode!,
+  //       name: name,
+  //     );
+  //
+  //     if (emailSent) {
+  //       setState(() {
+  //         _showEmailOtpField = true;
+  //       });
+  //
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text("OTP sent to your email. Please check your inbox.",
+  //               style: TextStyle(color: whiteColor)),
+  //           backgroundColor: Colors.green,
+  //           behavior: SnackBarBehavior.floating,
+  //           duration: Duration(seconds: 5),
+  //         ),
+  //       );
+  //     } else {
+  //       // Fallback to mock or show error
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text("Failed to send email OTP. For testing, the OTP is: $_emailVerificationCode",
+  //               style: TextStyle(color: whiteColor)),
+  //           backgroundColor: Colors.orange,
+  //           behavior: SnackBarBehavior.floating,
+  //           duration: Duration(seconds: 10),
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text("Error sending email OTP: ${e.toString()}",
+  //             style: TextStyle(color: whiteColor)),
+  //         backgroundColor: Colors.redAccent,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   } finally {
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //   }
+  // }
+  //
+  // // Verify the entered email OTP
+  // void _verifyEmailOtp() {
+  //   if (_emailOtpController.text.isEmpty || _emailVerificationCode == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text("Please enter the OTP sent to your email",
+  //             style: TextStyle(color: whiteColor)),
+  //         backgroundColor: Colors.redAccent,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //     return;
+  //   }
+  //
+  //   if (_emailOtpController.text.trim() == _emailVerificationCode) {
+  //     setState(() {
+  //       _isEmailVerified = true;
+  //       _showEmailOtpField = false;
+  //     });
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text("Email verified successfully!",
+  //             style: TextStyle(color: whiteColor)),
+  //         backgroundColor: Colors.green,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text("Invalid OTP. Please try again.",
+  //             style: TextStyle(color: whiteColor)),
+  //         backgroundColor: Colors.redAccent,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   }
+  // }
 
   Future<void> _signUp() async {
-    if (!_isEmailVerified) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Please verify your email address first.",
-              style: TextStyle(color: whiteColor)),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
+    // if (!_isEmailVerified) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text("Please verify your email address first.",
+    //           style: TextStyle(color: whiteColor)),
+    //       backgroundColor: Colors.redAccent,
+    //       behavior: SnackBarBehavior.floating,
+    //     ),
+    //   );
+    //   return;
+    // }
 
     if (_formKey.currentState!.validate()) {
       if (!_termsAccepted) {
@@ -301,7 +296,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           );
         } else {
           // Show email verification info dialog
-          _showEmailVerificationInfo();
+         // _showEmailVerificationInfo();
 
           // Show success message
           // Navigate to gender screen to start profile completion
@@ -408,109 +403,103 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         child: Column(
                           children: [
                             // Email Field with Verification
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: CustomTextField(
-                                    controller: _emailController,
-                                    hint: "Enter your email",
-                                    label: "Email Address",
-                                    prefixIcon: Icons.email_outlined,
-                                    keyboardType: TextInputType.emailAddress,
-                                    textInputAction: TextInputAction.next,
-                                    focusedBorderColor: pinkColor,
-                                    fillColor: Colors.grey[100]!,
-                                    borderRadius: 12,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please enter your email';
-                                      }
-                                      // Custom email validation
-                                      final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                                      if (!emailRegex.hasMatch(value.trim())) {
-                                        return 'Please enter a valid email';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                ElevatedButton(
-                                  onPressed: _isLoading || _isEmailVerified ? null : _sendEmailOtp,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: _isEmailVerified ? Colors.green : pinkColor,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                                  ),
-                                  child: _isEmailVerified
-                                      ? Icon(Icons.check, color: whiteColor)
-                                      : Text(
-                                          "Verify",
-                                          style: TextStyle(color: whiteColor),
-                                        ),
-                                ),
-                              ],
+                            CustomTextField(
+                              controller: _emailController,
+                              hint: "Enter your email",
+                              label: "Email Address",
+                              prefixIcon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              focusedBorderColor: pinkColor,
+                              fillColor: Colors.grey[100]!,
+                              borderRadius: 12,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your email';
+                                }
+                                // Custom email validation
+                                final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                                if (!emailRegex.hasMatch(value.trim())) {
+                                  return 'Please enter a valid email';
+                                }
+                                return null;
+                              },
                             ),
-
-                            // Email OTP field
-                            if (_showEmailOtpField) ...[
-                              SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: CustomTextField(
-                                      controller: _emailOtpController,
-                                      hint: "Enter OTP sent to your email",
-                                      label: "Email OTP",
-                                      prefixIcon: Icons.mail_lock_outlined,
-                                      keyboardType: TextInputType.number,
-                                      textInputAction: TextInputAction.next,
-                                      focusedBorderColor: pinkColor,
-                                      fillColor: Colors.grey[100]!,
-                                      borderRadius: 12,
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Please enter OTP';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  ElevatedButton(
-                                    onPressed: _isLoading ? null : _verifyEmailOtp,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: pinkColor,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                                    ),
-                                    child: Text(
-                                      "Confirm",
-                                      style: TextStyle(color: whiteColor),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-
-                            // Email verification status
-                            if (_isEmailVerified) ...[
-                              SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Icon(Icons.check_circle, color: Colors.green, size: 16),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Email verified",
-                                    style: TextStyle(color: Colors.green, fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                            ],
+                            // SizedBox(width: 8),
+                            // ElevatedButton(
+                            //   onPressed: _isLoading || _isEmailVerified ? null : _sendEmailOtp,
+                            //   style: ElevatedButton.styleFrom(
+                            //     backgroundColor: _isEmailVerified ? Colors.green : pinkColor,
+                            //     shape: RoundedRectangleBorder(
+                            //       borderRadius: BorderRadius.circular(8),
+                            //     ),
+                            //     padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                            //   ),
+                            //   child: _isEmailVerified
+                            //       ? Icon(Icons.check, color: whiteColor)
+                            //       : Text(
+                            //           "Verify",
+                            //           style: TextStyle(color: whiteColor),
+                            //         ),
+                            // ),
+                            //
+                            // // Email OTP field
+                            // if (_showEmailOtpField) ...[
+                            //   SizedBox(height: 16),
+                            //   Row(
+                            //     children: [
+                            //       Expanded(
+                            //         child: CustomTextField(
+                            //           controller: _emailOtpController,
+                            //           hint: "Enter OTP sent to your email",
+                            //           label: "Email OTP",
+                            //           prefixIcon: Icons.mail_lock_outlined,
+                            //           keyboardType: TextInputType.number,
+                            //           textInputAction: TextInputAction.next,
+                            //           focusedBorderColor: pinkColor,
+                            //           fillColor: Colors.grey[100]!,
+                            //           borderRadius: 12,
+                            //           validator: (value) {
+                            //             if (value == null || value.isEmpty) {
+                            //               return 'Please enter OTP';
+                            //             }
+                            //             return null;
+                            //           },
+                            //         ),
+                            //       ),
+                            //       SizedBox(width: 8),
+                            //       ElevatedButton(
+                            //         onPressed: _isLoading ? null : _verifyEmailOtp,
+                            //         style: ElevatedButton.styleFrom(
+                            //           backgroundColor: pinkColor,
+                            //           shape: RoundedRectangleBorder(
+                            //             borderRadius: BorderRadius.circular(8),
+                            //           ),
+                            //           padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                            //         ),
+                            //         child: Text(
+                            //           "Confirm",
+                            //           style: TextStyle(color: whiteColor),
+                            //         ),
+                            //       ),
+                            //     ],
+                            //   ),
+                            // ],
+                            //
+                            // // Email verification status
+                            // if (_isEmailVerified) ...[
+                            //   SizedBox(height: 8),
+                            //   Row(
+                            //     children: [
+                            //       Icon(Icons.check_circle, color: Colors.green, size: 16),
+                            //       SizedBox(width: 8),
+                            //       Text(
+                            //         "Email verified",
+                            //         style: TextStyle(color: Colors.green, fontSize: 12),
+                            //       ),
+                            //     ],
+                            //   ),
+                            // ],
 
                             SizedBox(height: 16),
 
@@ -719,7 +708,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           const SizedBox(width: 5),
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(
+                              Navigator.pushReplacement(
                                 context,
                                 PageRouteBuilder(
                                   pageBuilder: (context, animation, secondaryAnimation) => Loginscreen(),

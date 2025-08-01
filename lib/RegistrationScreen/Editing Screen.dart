@@ -4,11 +4,14 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:marriage_bereau_app/Screens/signInScreen.dart';
 import 'package:marriage_bereau_app/Screens/signUpScreen.dart';
+import 'package:marriage_bereau_app/Services/LogIn_Service.dart';
 import 'package:marriage_bereau_app/Services/profile_service.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:marriage_bereau_app/Essentials/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditingScreen extends StatefulWidget {
   const EditingScreen({super.key});
@@ -667,7 +670,7 @@ class _EditingScreenState extends State<EditingScreen> {
     }
   }
 
-  void showLoadingDialog() {
+  void showLoadingDialog(String title) {
     showDialog(
       context: context,
       builder: (context) {
@@ -676,7 +679,7 @@ class _EditingScreenState extends State<EditingScreen> {
             children: [
               const CircularProgressIndicator(color: Colors.red,),
               const SizedBox(width: 20),
-              const Text("Deleting Account...",),
+              Text(title,),
             ],
           ),
         );
@@ -725,10 +728,22 @@ class _EditingScreenState extends State<EditingScreen> {
     );
   }
 
+  Future<void> logOut()async{
+    Navigator.of(context).pop();
+    showLoadingDialog("Logging Out...");
+   await LogInStatus.setLoggedIn(false);
+   print(LogInStatus.isLoggedIn);
+   Navigator.pushAndRemoveUntil(
+     context,
+     MaterialPageRoute(builder: (context) => Loginscreen()),
+         (route) => false,
+   );
+  }
+
   Future<void> _deleteUserAccount() async {
     try{
       Navigator.of(context).pop();
-      showLoadingDialog();
+      showLoadingDialog("Deleting Account...");
       final user=FirebaseAuth.instance.currentUser;
       if(user==null) return;
         //Delete from Authentication
@@ -809,6 +824,38 @@ class _EditingScreenState extends State<EditingScreen> {
             foregroundColor: Colors.white,
           ),
           child: Text("CANCEL"),
+        ),
+      ],
+    ));
+  }
+  void _showLogOutDialogue() {
+    showDialog(context: context, builder: (ctx)=>AlertDialog(
+      title: Text("LogOut?", style: TextStyle(color: pinkColor)),
+      content: Text(
+        "Are you sure to logout",
+        style: TextStyle(fontSize: 16),
+        textAlign: TextAlign.center,
+      ),
+      actions: <Widget>[
+        ElevatedButton(
+          onPressed: () {
+            logOut();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: pinkColor,
+            foregroundColor: Colors.white,
+          ),
+          child: Text("YES"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: pinkColor,
+            foregroundColor: Colors.white,
+          ),
+          child: Text("NO"),
         ),
       ],
     ));
@@ -2219,6 +2266,27 @@ class _EditingScreenState extends State<EditingScreen> {
                       ),
                       child: const Text(
                         "Delete Account",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton(
+                      onPressed: (){
+                        _showLogOutDialogue();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: pinkColor,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: const Text(
+                        "Log Out",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,

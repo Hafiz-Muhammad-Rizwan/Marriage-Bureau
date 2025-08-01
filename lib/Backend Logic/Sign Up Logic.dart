@@ -56,79 +56,79 @@ class SignUp extends ChangeNotifier {
     }
   }
 
-  // Send OTP via Firebase phone authentication for verification only
-  Future<Map<String, dynamic>> sendPhoneVerificationOTP(String phoneNumber) async {
-    Completer<Map<String, dynamic>> completer = Completer<Map<String, dynamic>>();
-
-    try {
-      String formattedNumber = _formatPhoneNumber(phoneNumber);
-
-      await _auth.verifyPhoneNumber(
-        phoneNumber: formattedNumber,
-        verificationCompleted: (PhoneAuthCredential credential) {
-          // Auto-verification completed (Android only)
-          completer.complete({
-            'success': true,
-            'autoVerified': true,
-            'message': 'Phone number automatically verified'
-          });
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          completer.complete({
-            'success': false,
-            'message': e.message ?? 'Verification failed'
-          });
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          completer.complete({
-            'success': true,
-            'autoVerified': false,
-            'verificationId': verificationId,
-            'resendToken': resendToken,
-            'message': 'OTP sent successfully'
-          });
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          // Only complete if not already completed
-          if (!completer.isCompleted) {
-            completer.complete({
-              'success': false,
-              'message': 'OTP request timeout'
-            });
-          }
-        },
-        timeout: Duration(seconds: 60),
-      );
-
-      return await completer.future;
-    } catch (e) {
-      if (!completer.isCompleted) {
-        completer.complete({
-          'success': false,
-          'message': 'Error sending OTP: ${e.toString()}'
-        });
-      }
-      return await completer.future;
-    }
-  }
-
-  // Verify OTP for phone number verification (doesn't create Firebase Auth account)
-  Future<bool> verifyPhoneOTP(String verificationId, String otp) async {
-    try {
-      // Create credential with verification ID and OTP
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: verificationId,
-        smsCode: otp,
-      );
-
-      // We just verify the credential without signing in
-      // This is just to verify the phone number is valid
-      return true;
-    } catch (e) {
-      print('Error verifying OTP: $e');
-      return false;
-    }
-  }
+  // // Send OTP via Firebase phone authentication for verification only
+  // Future<Map<String, dynamic>> sendPhoneVerificationOTP(String phoneNumber) async {
+  //   Completer<Map<String, dynamic>> completer = Completer<Map<String, dynamic>>();
+  //
+  //   try {
+  //     String formattedNumber = _formatPhoneNumber(phoneNumber);
+  //
+  //     await _auth.verifyPhoneNumber(
+  //       phoneNumber: formattedNumber,
+  //       verificationCompleted: (PhoneAuthCredential credential) {
+  //         // Auto-verification completed (Android only)
+  //         completer.complete({
+  //           'success': true,
+  //           'autoVerified': true,
+  //           'message': 'Phone number automatically verified'
+  //         });
+  //       },
+  //       verificationFailed: (FirebaseAuthException e) {
+  //         completer.complete({
+  //           'success': false,
+  //           'message': e.message ?? 'Verification failed'
+  //         });
+  //       },
+  //       codeSent: (String verificationId, int? resendToken) {
+  //         completer.complete({
+  //           'success': true,
+  //           'autoVerified': false,
+  //           'verificationId': verificationId,
+  //           'resendToken': resendToken,
+  //           'message': 'OTP sent successfully'
+  //         });
+  //       },
+  //       codeAutoRetrievalTimeout: (String verificationId) {
+  //         // Only complete if not already completed
+  //         if (!completer.isCompleted) {
+  //           completer.complete({
+  //             'success': false,
+  //             'message': 'OTP request timeout'
+  //           });
+  //         }
+  //       },
+  //       timeout: Duration(seconds: 60),
+  //     );
+  //
+  //     return await completer.future;
+  //   } catch (e) {
+  //     if (!completer.isCompleted) {
+  //       completer.complete({
+  //         'success': false,
+  //         'message': 'Error sending OTP: ${e.toString()}'
+  //       });
+  //     }
+  //     return await completer.future;
+  //   }
+  // }
+  //
+  // // Verify OTP for phone number verification (doesn't create Firebase Auth account)
+  // Future<bool> verifyPhoneOTP(String verificationId, String otp) async {
+  //   try {
+  //     // Create credential with verification ID and OTP
+  //     PhoneAuthCredential credential = PhoneAuthProvider.credential(
+  //       verificationId: verificationId,
+  //       smsCode: otp,
+  //     );
+  //
+  //     // We just verify the credential without signing in
+  //     // This is just to verify the phone number is valid
+  //     return true;
+  //   } catch (e) {
+  //     print('Error verifying OTP: $e');
+  //     return false;
+  //   }
+  // }
 
   // Sign up with email and password in Firebase Auth, store phone in Firestore
   // Make sure phone is verified via OTP before calling this method
@@ -162,7 +162,7 @@ class SignUp extends ChangeNotifier {
       });
 
       // Send email verification
-      await userCredential.user!.sendEmailVerification();
+      //await userCredential.user!.sendEmailVerification();
 
       return null; // Success
     } on FirebaseAuthException catch (e) {
@@ -176,6 +176,16 @@ class SignUp extends ChangeNotifier {
       return e.message;
     } catch (e) {
       return 'Something went wrong: ${e.toString()}';
+    }
+  }
+
+  Future<bool?> sendResentLink(String email)async{
+    try{
+      await _auth.sendPasswordResetEmail(email: email);
+      return true;
+    }
+    on FirebaseAuthException catch(e){
+      return false;
     }
   }
 
@@ -225,54 +235,54 @@ class SignUp extends ChangeNotifier {
     }
   }
 
-  // Send email verification
-  Future<bool> sendEmailVerification() async {
-    try {
-      User? user = _auth.currentUser;
-      if (user != null && !user.emailVerified) {
-        await user.sendEmailVerification();
-        return true;
-      }
-      return false;
-    } catch (e) {
-      print('Error sending email verification: $e');
-      return false;
-    }
-  }
+  // // Send email verification
+  // Future<bool> sendEmailVerification() async {
+  //   try {
+  //     User? user = _auth.currentUser;
+  //     if (user != null && !user.emailVerified) {
+  //       await user.sendEmailVerification();
+  //       return true;
+  //     }
+  //     return false;
+  //   } catch (e) {
+  //     print('Error sending email verification: $e');
+  //     return false;
+  //   }
+  // }
 
   // Check if email is verified
-  Future<bool> isEmailVerified() async {
-    try {
-      User? user = _auth.currentUser;
-      if (user == null) return false;
-
-      // Reload user to get the latest email verification status
-      await user.reload();
-      user = _auth.currentUser;
-
-      return user?.emailVerified ?? false;
-    } catch (e) {
-      print('Error checking email verification: $e');
-      return false;
-    }
-  }
+  // Future<bool> isEmailVerified() async {
+  //   try {
+  //     User? user = _auth.currentUser;
+  //     if (user == null) return false;
+  //
+  //     // Reload user to get the latest email verification status
+  //     await user.reload();
+  //     user = _auth.currentUser;
+  //
+  //     return user?.emailVerified ?? false;
+  //   } catch (e) {
+  //     print('Error checking email verification: $e');
+  //     return false;
+  //   }
+  // }
 
   // Check email verification status and show appropriate dialog
-  Future<bool> checkAndHandleEmailVerification() async {
-    try {
-      User? user = _auth.currentUser;
-      if (user == null) return false;
-
-      // Reload user to get the latest verification status
-      await user.reload();
-      user = _auth.currentUser;
-
-      return user!.emailVerified;
-    } catch (e) {
-      print('Error checking email verification: $e');
-      return false;
-    }
-  }
+  // Future<bool> checkAndHandleEmailVerification() async {
+  //   try {
+  //     User? user = _auth.currentUser;
+  //     if (user == null) return false;
+  //
+  //     // Reload user to get the latest verification status
+  //     await user.reload();
+  //     user = _auth.currentUser;
+  //
+  //     return user!.emailVerified;
+  //   } catch (e) {
+  //     print('Error checking email verification: $e');
+  //     return false;
+  //   }
+  // }
 }
 
 class Country {

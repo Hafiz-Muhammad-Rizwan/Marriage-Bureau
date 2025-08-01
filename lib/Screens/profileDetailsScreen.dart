@@ -544,7 +544,6 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
           _buildInfoRow('Father', _getParentStatusText('Father')),
           _buildInfoRow('Mother', _getParentStatusText('Mother')),
           _buildInfoRow('Guardian', _userProfile!.guardianType ?? 'Not specified'),
-          _buildInfoRow('Guardian Number', _userProfile!.guardianNumber ?? 'Not specified'),
           if (_userProfile!.nationalities != null && _userProfile!.nationalities!.isNotEmpty)
             _buildInfoRow('Nationality', _userProfile!.nationalities!.join(', ')),
           _buildInfoRow('Willing to Move Abroad', _userProfile!.moveAbroad ?? 'Not specified'),

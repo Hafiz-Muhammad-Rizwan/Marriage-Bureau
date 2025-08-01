@@ -18,6 +18,7 @@ class _EducationScreenState extends State<EducationScreen> {
     "Diploma",
     "Undergraduate (Bachelor's)",
     "Postgraduate (Master's)",
+    "M.Phil",
     "Doctorate (PhD)",
     "Vocational Training",
     "Other",

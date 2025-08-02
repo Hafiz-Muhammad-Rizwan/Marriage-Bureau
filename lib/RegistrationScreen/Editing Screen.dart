@@ -790,6 +790,7 @@ class _EditingScreenState extends State<EditingScreen> {
 
       Navigator.of(context).pop();
       await FirebaseAuth.instance.signOut();
+      await LogInStatus.setLoggedIn(false);
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpScreen()));
 
     } catch (e) {

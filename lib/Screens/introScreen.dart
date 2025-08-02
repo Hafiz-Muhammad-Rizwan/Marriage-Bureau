@@ -92,7 +92,7 @@ class _IntroscreenState extends State<Introscreen> with SingleTickerProviderStat
                   Icon(Icons.favorite, color: pinkColor, size: 60),
                   const SizedBox(height: 15),
                   Text(
-                    "Best Couple",
+                    "Real Couple",
                     style: TextStyle(
                       color: whiteColor,
                       fontSize: headingSize * 1.4,

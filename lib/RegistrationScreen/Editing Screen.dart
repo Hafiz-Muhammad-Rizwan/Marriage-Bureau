@@ -673,6 +673,7 @@ class _EditingScreenState extends State<EditingScreen> {
   void showLoadingDialog(String title) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
           content: Row(
@@ -741,60 +742,72 @@ class _EditingScreenState extends State<EditingScreen> {
   }
 
   Future<void> _deleteUserAccount() async {
-    try{
+    try {
       Navigator.of(context).pop();
       showLoadingDialog("Deleting Account...");
-      final user=FirebaseAuth.instance.currentUser;
-      if(user==null) return;
-        //Delete from Authentication
-        final password=await _promptForPassword();
-        if(password==null || password.isEmpty){
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Passwrod Required', style: TextStyle(color: Colors.white)),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          return;
-        }
-        final credential=EmailAuthProvider.credential(email: user.email!, password: password);
-        await user.reauthenticateWithCredential(credential);
-        //Delete from FireStore
-      final userId=user.uid;
-      //Delete from firestore
-      final firestore=FirebaseFirestore.instance;
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Prompt for password & re-authenticate
+      final password = await _promptForPassword();
+      if (password == null || password.isEmpty) {
+        Navigator.of(context).pop();
+        _showError("Password required");
+        return;
+      }
+
+      final credential = EmailAuthProvider.credential(email: user.email!, password: password);
+      await user.reauthenticateWithCredential(credential);
+
+      final userId = user.uid;
+      final firestore = FirebaseFirestore.instance;
+
+      // Delete from Firebase Auth FIRST
+      await user.delete();
+
+      // Delete profile image from Firebase Storage
+      final Reference storageRef = _storage.ref().child('profile_images/$userId');
+      try {
+        await storageRef.delete();
+      } catch (_) {
+        _showError("Failed to delete image");
+      }
+
+      // Delete documents from Firestore
       await firestore.collection("profiles").doc(userId).delete();
       await firestore.collection("users").doc(userId).delete();
-      final sendConnections=await firestore.collection("connectionRequests").where("senderId",isEqualTo: userId).get();
-      for(var doc in sendConnections.docs){
-        await doc.reference.delete();
-      }
-      final receiveConnections=await firestore.collection("connectionRequests").where("recipientId",isEqualTo: userId).get();
-      for(var doc in receiveConnections.docs){
+
+      final sentConnections = await firestore.collection("connectionRequests").where("senderId", isEqualTo: userId).get();
+      for (var doc in sentConnections.docs) {
         await doc.reference.delete();
       }
 
-      final Reference storageRef = _storage.ref().child('profile_images/$userId.jpg');
-      await storageRef.delete();
+      final receivedConnections = await firestore.collection("connectionRequests").where("recipientId", isEqualTo: userId).get();
+      for (var doc in receivedConnections.docs) {
+        await doc.reference.delete();
+      }
 
-      await user.delete();
       Navigator.of(context).pop();
       await FirebaseAuth.instance.signOut();
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>SignUpScreen()));
-    }
-    catch(e){
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to Delete Profile', style: TextStyle(color: Colors.white)),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpScreen()));
 
+    } catch (e) {
+      Navigator.of(context).pop();
+      _showError("Failed to delete account. ${e.toString()}");
     }
   }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
 
   void _showDeleteDialog() {
     showDialog(context: context, builder: (ctx)=>AlertDialog(

@@ -26,12 +26,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<String> _favoriteProfiles = {};
   bool _isLoading = true;
   String? _currentUserGender;
+  final _cityControler=TextEditingController();
 
   // Filter related variables
   RangeValues _ageRange = const RangeValues(18, 60);
   String? _selectedMaritalStatus;
   String? _selectedCaste;
   String? _selectedSect;
+  String? _selectedEducation;
+  String? _selectedCity;
   bool _filtersApplied = false;
 
   // Marital status options - matching the options in MaritalStatusProvider
@@ -41,6 +44,15 @@ class _HomeScreenState extends State<HomeScreen> {
     'Divorced',
     'Widowed',
     'Married',
+  ];
+  final List<String> _educationLevelsOptions = [
+    "High School",
+    "Diploma",
+    "Undergraduate (Bachelor's)",
+    "Postgraduate (Master's)",
+    "M.Phil",
+    "Doctorate (PhD)",
+    "Vocational Training",
   ];
 
   // We'll populate these from the Sign Up Logic providers
@@ -188,14 +200,17 @@ class _HomeScreenState extends State<HomeScreen> {
         final maritalStatusValid = _selectedMaritalStatus == null ||
             _selectedMaritalStatus == 'All' ||
             profile.maritalStatus == _selectedMaritalStatus;
+        final educationValid = _selectedEducation == null ||
+            profile.educationLevel == _selectedEducation;
         final casteValid = _selectedCaste == null ||
             _selectedCaste == 'All' ||
             profile.caste == _selectedCaste;
         final sectValid = _selectedSect == null ||
             _selectedSect == 'All' ||
             profile.sect == _selectedSect;
+        final cityValid = _selectedCity == null || _selectedCity==_cityControler.text.trim();
 
-        return ageValid && maritalStatusValid && casteValid && sectValid;
+        return ageValid && maritalStatusValid && educationValid && casteValid && sectValid && cityValid;
       }).toList();
     });
   }
@@ -206,6 +221,9 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedMaritalStatus = null;
       _selectedCaste = null;
       _selectedSect = null;
+      _selectedEducation=null;
+      _selectedCity==null;
+      _cityControler.clear();
       _filtersApplied = false;
       _filteredProfiles = _profiles; // Reset to all profiles
     });
@@ -217,6 +235,8 @@ class _HomeScreenState extends State<HomeScreen> {
     String? tempMaritalStatus = _selectedMaritalStatus;
     String? tempCaste = _selectedCaste;
     String? tempSect = _selectedSect;
+    String? tempEducation= _selectedEducation;
+    String? tempCity= _selectedCity;
 
     showDialog(
       context: context,
@@ -324,7 +344,36 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
 
                       const SizedBox(height: 20),
-
+                      _buildFilterSectionTitle("Education Status"),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: tempEducation,
+                            isExpanded: true,
+                            icon: Icon(Icons.arrow_drop_down, color: pinkColor),
+                            hint: Text("Select Education"),
+                            items: _educationLevelsOptions.map((status) {
+                              return DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(status),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                tempEducation = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                       // Caste Section
                       _buildFilterSectionTitle("Caste"),
                       const SizedBox(height: 5),
@@ -388,6 +437,31 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20),
+
+                      // Sect Section
+                      _buildFilterSectionTitle("City"),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: TextField(
+                          controller: _cityControler,
+                          decoration: InputDecoration(
+                            hintText: "Enter City",
+                          ),
+                          onChanged: (value){
+                            setState(() {
+                              tempCity=value;
+                            });
+                          },
+                        )
+                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
